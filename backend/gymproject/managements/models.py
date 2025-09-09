@@ -16,9 +16,8 @@ class BaseModel(models.Model):
 
 class Role(IntEnum):
     Admin = 0
-    Exerciser_Self_Help = 1
-    Exerciser_With_Coach = 2
-    Coach = 3
+    Exerciser = 1
+    Coach = 2
 
     @classmethod
     def choices(cls):
@@ -36,11 +35,14 @@ class User(AbstractUser):
         return self.username
 
 class Activity(BaseModel):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     description = RichTextField(null=True, blank=True)
     calories_burned = models.FloatField(null=True, blank=True)
     time = models.IntegerField(null=True, blank=True)
+    date = models.DateField(default=timezone.localdate)
     image = CloudinaryField('activity_image', null=True, blank=True)
+    active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -63,6 +65,9 @@ class MealPlan(BaseModel):
     date = models.DateField()  # Removed default=timezone.now
     description = RichTextField(null=True, blank=True)
     calories_intake = models.FloatField(null=True, blank=True)
+    goal = models.CharField(max_length=20, choices=[('maintain', 'Duy trì'), ('lose', 'Giảm cân'), ('gain', 'Tăng cơ')],default='maintain')
+    image = models.ImageField(upload_to='mealplan_images/', null=True, blank=True)  # thêm ảnh
+    active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -76,6 +81,7 @@ class CoachProfile(BaseModel):
 
     def __str__(self):
         return self.user.username
+
 
 class HealthRecord(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -119,14 +125,14 @@ class ChatMessage(BaseModel):
 
     class Meta:
         ordering = ['timestamp']
-        unique_together = ('sender', 'receiver', 'timestamp')
+        unique_together = ('sender', 'receiver', 'message', 'timestamp')
 
 
-class Tag(BaseModel):
-    name = models.CharField(max_length=50, unique=True)
-
-    def __str__(self):
-        return self.name
+# class Tag(BaseModel):
+#     name = models.CharField(max_length=50, unique=True)
+#
+#     def __str__(self):
+#         return self.name
 
 class UserGoal(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = 'http:// 192.168.1.131:8000/';
+const BASE_URL = 'http://192.168.88.108:8000/';
 
 export const endpoints = {
   'login': '/o/token/', 
@@ -45,6 +45,7 @@ export const endpoints = {
 'healthdiary-update': (diaryId) => `/healthdiary/${diaryId}/`,
 'healthdiary-partial-update': (diaryId) => `/healthdiary/${diaryId}/`,
 'healthdiary-delete': (diaryId) => `/healthdiary/${diaryId}/`,
+'healthdiary-my-diaries': '/healthdiary/my_diaries/',
 
 // healthrecord
 'healthrecord-list': '/healthrecord/',
@@ -65,20 +66,33 @@ export const endpoints = {
 'workoutplan-update': (planId) => `/workoutplan/${planId}/`,
 'workoutplan-partial-update': (planId) => `/workoutplan/${planId}/`,
 'workoutplan-delete': (planId) => `/workoutplan/${planId}/`,
+
+// mealplan
+'mealplan-list': '/mealplan/',
+'mealplan-create': '/mealplan/',
+'mealplan-create-mealplan': '/mealplan/create-meal-plan/',
+'mealplan-read': (mealId) => `/mealplan/${mealId}/`,
+'mealplan-update': (mealId) => `/mealplan/${mealId}/`,
+'mealplan-partial-update': (mealId) => `/mealplan/${mealId}/`,
+'mealplan-delete': (mealId) => `/mealplan/${mealId}/`,
 };
 
 
 
-export const createOrUpdateWorkoutPlan = async (token, date, workouts) => {
-  try {
-    const api = authApis(token);
-    const payload = { date, workouts };
-    const res = await api.post(endpoints['workoutplan-create'], payload);
-    return res.data;
-  } catch (error) {
-    console.error("Lỗi lưu kế hoạch luyện tập:", error.response?.data || error.message);
-    throw error;
-  }
+export const createOrUpdateWorkoutPlan = (token, data) => {
+  return axios.post(`${BASE_URL}/workoutplan/create-plan/`, data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+};
+
+export const getMealPlansByGoal = (token, goal) => {
+  return axios.get(`${BASE_URL}/mealplan/`, {
+    headers: { Authorization: `Bearer ${token}` },
+    params: { goal }, // backend cần hỗ trợ filter bằng query param 'goal'
+  });
 };
 
 export const changePassword = async (token, currentPassword, newPassword) => {

@@ -1,6 +1,7 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Icon} from "react-native-paper";
+import { ImageBackground } from "react-native";
 import { Provider as PaperProvider } from 'react-native-paper';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MyDispatchContext, MyUserContext } from "./configs/UserContext";
@@ -13,19 +14,16 @@ import EditProfile from "./components/User/EditProfile";
 import ExpertInfo from "./components/user2/ExpertInfo";
 import HealthDiary from "./components/User1/HealthDiary";
 import Home from "./components/Home/Home";
-import HomeUser from "./components/Home/HomeUser";
 import Login from "./components/User/Login";
-import MealPlan from "./components/MealPlan";
+import MealPlan from "./components/User1/MealPlan";
 import MyUserReducer from "./configs/UserReducer";
 import Profile from "./components/User/Profile";
 import ProfileInput from "./components/User1/ProfileInput"; 
 import Register from "./components/User/Register";
 import Reminders from "./components/User1/Reminders";
-// import Statistics from "./components/User1/Statistics";
-// import ExpertsList from "./components/user2/ExpertList";
-// import ExpertDetail from "./components/user2/ExpertDetail";
 import WorkoutPlan from "./components/User1/WorkoutPlan";
-import ChangePassword from "./components/ChangePassword";
+import ChangePassword from "./components/User/ChangePassword";
+// import HomeExpert from "./components/HomeExpert";
 
 const Stack = createNativeStackNavigator();
 
@@ -45,9 +43,9 @@ const IndexStack = () => {
         headerTintColor: 'white',
       }}
     >
-      <Stack.Screen name="Dashboard" component={Dashboard} options={{title: "SỔ TAY QUẢN LÝ SỨC KHOẺ" }} />
-      <Stack.Screen name="Login" component={Login} options={{title: "Đăng nhập" }}/>
-      <Stack.Screen name="Register" component={Register} options={{title: "Đăng ký"}}/>
+      <Stack.Screen name="Dashboard" component={Dashboard} options={{title: "SỔ TAY QUẢN LÝ SỨC KHOẺ", headerShown: false}} />
+      <Stack.Screen name="Login" component={Login} options={{title: "Đăng nhập", headerShown: false}}/>
+      <Stack.Screen name="Register" component={Register} options={{title: "Đăng ký", headerShown: false}}/>
     </Stack.Navigator>
   );
 }
@@ -57,69 +55,107 @@ const HomeStack = () => {
     <Stack.Navigator
        screenOptions={{
         headerStyle: {
-          backgroundColor: '#BB0000'
+          backgroundColor: '#000099'
         },
         headerTitleStyle: {
-          color: 'white'
+          color: 'white',
+          fontSize: 20
         },
         headerTintColor: 'white',
+        headerBackground: () => (
+          <ImageBackground
+            source={require('../reactmobileapp/assets/Images/background1.jpg')}
+            style={{ flex: 1 }}
+            resizeMode="cover"
+          />
+        ),
       }}
     >
-      <Stack.Screen name="Home" component={Home} options={{  title: "SỔ TAY QUẢN LÝ SỨC KHOẺ" }} />
+      <Stack.Screen name="Home" component={Home} options={{  title: "SỔ TAY QUẢN LÝ SỨC KHOẺ", headerShown: false }} />
       <Stack.Screen name="ChooseRole" component={ChooseRole} options={{ title: "CHẾ ĐỘ"}}/>
-      <Stack.Screen name="ProfileInput" component={ProfileInput} options={{title: "Theo dõi sức khoẻ"}}/>
-      <Stack.Screen name="MealPlan" component={MealPlan} options={{title: "Thực đơn dinh dưỡng"}}/>
-      <Stack.Screen name="WorkoutPlan" component={WorkoutPlan} options={{title: "Lịch tập luyện"}}/>
+      <Stack.Screen name="ProfileInput" component={ProfileInput} options={{title: "Theo dõi sức khoẻ", headerShown: false}}/>
+      <Stack.Screen name="MealPlan" component={MealPlan} options={{title: "Thực đơn dinh dưỡng", headerShown: false}}/>
+      <Stack.Screen name="WorkoutPlan" component={WorkoutPlan} options={{title: "Lịch tập luyện", headerShown: false}}/>
       <Stack.Screen name="ActivityDetail" component={ActivityDetail} options={{title: "Hoạt động"}}/>
-      <Stack.Screen name="CreateGoal" component={CreateGoal} options={{title: "Mục tiêu"}}/>
-
+      <Stack.Screen name="CreateGoal" component={CreateGoal} options={{title: "Mục tiêu", headerShown: false }}/>
     </Stack.Navigator>
   );
 }
 
-const UserStack = () => {
-  return (
-    <Stack.Navigator
-       screenOptions={{
-        headerStyle: {
-          backgroundColor: '#BB0000'
-        },
-        headerTitleStyle: {
-          color: 'white'
-        },
-        headerTintColor: 'white',
-      }}
-    >
-      <Stack.Screen name="HomeUser" component={HomeUser} options={{  title: "SỔ TAY QUẢN LÝ SỨC KHOẺ" }} />
-      <Stack.Screen name="ChooseRole" component={ChooseRole} options={{ title: "CHẾ ĐỘ"}}/>
-      <Stack.Screen name="ProfileInput" component={ProfileInput} options={{title: "Theo dõi sức khoẻ"}}/>
-      <Stack.Screen name="MealPlan" component={MealPlan} options={{title: "Gợi ý dinh dưỡng"}}/>
-      <Stack.Screen name="WorkoutPlan" component={WorkoutPlan} options={{title: "Thống kê sức khoẻ"}}/>
-      <Stack.Screen name="ActivityDetail" component={ActivityDetail} options={{title: "Hoạt động"}}/>
-      <Stack.Screen name="CreateGoal" component={CreateGoal} options={{title: "Mục tiêu"}}/>
-
-    </Stack.Navigator>
-  );
-}
 
 
 const ProfileStack = () => {
   return (
     <Stack.Navigator
-       screenOptions={{
+      screenOptions={{
         headerBackTitleVisible: false,
-        headerStyle: {
-          backgroundColor: '#BB0000'
-        },
         headerTitleStyle: {
-          color: 'white'
+          color: 'white',
+          fontSize: 22
         },
         headerTintColor: 'white',
+        headerBackground: () => (
+          <ImageBackground
+            source={require('../reactmobileapp/assets/Images/background1.jpg')}
+            style={{ flex: 1 }}
+            resizeMode="cover"
+          />
+        ),
       }}
     >
-          <Stack.Screen name="Profile" component={Profile} options={{ title: 'TÀI KHOẢN', headerBackVisible: false }} />
-          <Stack.Screen name="EditProfile" component={EditProfile} options={{ title: 'Chỉnh sửa thông tin' }} />
+          <Stack.Screen name="Profile" component={Profile} options={{ title: 'Tài khoản', headerBackVisible: false }} />
+          <Stack.Screen name="EditProfile" component={EditProfile} options={{ title: 'Chỉnh sửa thông tin', headerShown: false  }} />
+          <Stack.Screen name="ChangePassword" component={ChangePassword} options={{ title: 'Đổi mật khẩu', headerShown: false  }} />
 
+      </Stack.Navigator>
+  );
+};
+
+const ReminderStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerBackTitleVisible: false,
+        headerTitleStyle: {
+          color: 'white',
+          fontSize: 22
+        },
+        headerTintColor: 'white',
+        headerBackground: () => (
+          <ImageBackground
+            source={require('../reactmobileapp/assets/Images/background1.jpg')}
+            style={{ flex: 1 }}
+            resizeMode="cover"
+          />
+        ),
+      }}
+    >
+          <Stack.Screen name="Reminder" component={Reminders} options={{ title: 'Thông báo', headerBackVisible: false }} />
+      </Stack.Navigator>
+  );
+};
+
+
+const DiaryStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerBackTitleVisible: false,
+        headerTitleStyle: {
+          color: 'white',
+          fontSize: 22
+        },
+        headerTintColor: 'white',
+        headerBackground: () => (
+          <ImageBackground
+            source={require('../reactmobileapp/assets/Images/background1.jpg')}
+            style={{ flex: 1 }}
+            resizeMode="cover"
+          />
+        ),
+      }}
+    >
+          <Stack.Screen name="Diary" component={HealthDiary} options={{ title: 'Nhật kí', headerBackVisible: false }} />
       </Stack.Navigator>
   );
 };
@@ -153,32 +189,25 @@ const TabNavigator = () => {
     <Tab.Navigator
       screenOptions={{
         tabBarShowLabel: true,
-        headerStyle: { backgroundColor: '#BB0000' },
-        tabBarActiveTintColor: '#BB0000',
+        headerStyle: { backgroundColor: '#000099' },
+        tabBarActiveTintColor: '#000099',
         headerTitleStyle: { fontSize: 18, color: 'white' },
         headerTintColor: 'white',
       }}
     >
       {user === null ? 
-        <Tab.Screen name="IndexStack" component={IndexStack} options={{ headerShown: false, tabBarLabel: 'Trang chủ', tabBarIcon: ({ color, size }) => <Icon source="home" color={color} size={size} /> }} />
+        <Tab.Screen name="IndexStack" component={IndexStack} options={{ headerShown: false, tabBarStyle: { display: 'none' }, tabBarButton: () => null }} />
         : <>
             {user.role === 1 && <>
               <Tab.Screen name="HomeStack" component={HomeStack} options={{ headerShown: false, tabBarLabel: 'Trang chủ', tabBarIcon: ({ color, size }) => <Icon source="home" color={color} size={size} /> }} />
-              <Tab.Screen name="HealthDiary" component={HealthDiary} options={{ title: 'Nhật kí', tabBarLabel: 'Nhật kí', tabBarIcon: ({ color, size }) => <Icon source="book" color={color} size={size} /> }} />
-              <Tab.Screen name="Reminders" component={Reminders} options={{ title: 'Thông báo', tabBarLabel: 'Thông báo', tabBarIcon: ({ color, size }) => <Icon source="bell" color={color} size={size} /> }} />
-             
+              <Tab.Screen name="DiaryStack" component={DiaryStack} options={{ headerShown: false, tabBarLabel: 'Nhật kí', tabBarIcon: ({ color, size }) => <Icon source="book" color={color} size={size} /> }} />
+              <Tab.Screen name="ReminderStack" component={ReminderStack} options={{headerShown: false, tabBarLabel: 'Thông báo', tabBarIcon: ({ color, size }) => <Icon source="bell" color={color} size={size} /> }} />
             </>}
             {user.role === 2 && <>
-              <Tab.Screen name="UserStack" component={UserStack} options={{ headerShown: false, tabBarLabel: 'Trang chủ', tabBarIcon: ({ color, size }) => <Icon source="home" color={color} size={size} /> }} />
-              <Tab.Screen name="ExpertInfo" component={ExpertInfo} options={{ tabBarLabel: 'Kết nối', tabBarIcon: ({ color, size }) => <Icon source="account-group" color={color} size={size} /> }} />
-              <Tab.Screen name="Reminders" component={Reminders} options={{ title: 'Thông báo', tabBarLabel: 'Thông báo', tabBarIcon: ({ color, size }) => <Icon source="bell" color={color} size={size} /> }} />
-            </>}
-            {user.role === 3 && <>
               <Tab.Screen name="CoachStack" component={CoachStack} options={{ headerShown: false, tabBarLabel: 'Trang chủ', tabBarIcon: ({ color, size }) => <Icon source="home" color={color} size={size} /> }} />
               <Tab.Screen name="ExpertInfo" component={ExpertInfo} options={{ tabBarLabel: 'Kết nối', tabBarIcon: ({ color, size }) => <Icon source="account-group" color={color} size={size} /> }} />
               <Tab.Screen name="ChatStack" component={ChatStack} options={{ tabBarLabel: 'Tin nhắn', tabBarIcon: ({ color, size }) => <Icon source="chat" color={color} size={size} /> }} />
             </>}
-            <Tab.Screen name="ChangePassword" component={ChangePassword} options={{ title: 'Đổi mật khẩu', tabBarLabel: 'Đổi mật khẩu', tabBarIcon: ({ color, size }) => <Icon source="lock" color={color} size={size} /> }} />
             <Tab.Screen name="ProfileStack" component={ProfileStack} options={{ headerShown: false, tabBarLabel: 'Người dùng', tabBarIcon: ({ color, size }) => <Icon source="account-cog" color={color} size={size} /> }} />
           </>
       }

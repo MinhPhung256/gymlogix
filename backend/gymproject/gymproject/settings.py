@@ -69,6 +69,7 @@ AUTHENTICATION_BACKENDS = [
 CKEDITOR_UPLOAD_PATH = "ckeditors/lessons/"
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -76,31 +77,32 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
 
 ]
 
-ROOT_URLCONF = 'healthManage.urls'
+ROOT_URLCONF = 'gymproject.urls'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'healthManage.wsgi.application'
+WSGI_APPLICATION = 'gymproject.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -108,7 +110,7 @@ WSGI_APPLICATION = 'healthManage.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'healthdb',
+        'NAME': 'gymdb',
         'USER': 'root',
         'PASSWORD': '12345',
         'HOST': ''  # mặc định localhost
@@ -121,10 +123,6 @@ import pymysql
 pymysql.install_as_MySQLdb()
 
 import cloudinary
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
 
 cloudinary.config(
     cloud_name='dy9g3l14t',
@@ -179,5 +177,21 @@ OAUTH2_PROVIDER = {
     # ... các cấu hình khác
 }
 
-CLIENT_ID = 'uIYv1mlMlvaGg0d1GqqHiMfqIzcOjyv65uuVR3rd'
-CLIENT_SECRET = 'JhbJR58y3fo7RTugTGA9msbJVGUTsioLqqBOOEl8UXzL4Fm9NqPjLM8Yy7VHhOEOsn8XChSxLCfkeLjV74f3ECBD1GYR0NTbbeJO7mhqL5oSvmioPsji0Rosw2RXxmul'
+LOGIN_URL = 'login'
+LOGOUT_URL = 'logout'
+LOGIN_REDIRECT_URL = '/'  # hoặc '/home', '/dashboard' tuỳ ý
+
+
+# OAuth2 Google
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = ''
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = ''
+
+# OAuth2 Facebook
+SOCIAL_AUTH_FACEBOOK_KEY = ''
+SOCIAL_AUTH_FACEBOOK_SECRET = ''
+
+# reCAPTCHA (nếu có)
+RECAPTCHA_SECRET_KEY = ''
+
+CLIENT_ID = 'xYf9dz566bhcch6VOmFTMVdipHPN1p0AOSuiIb5W'
+CLIENT_SECRET = 'nTImOFAiQf0IGZgM8fgPGXJDZQwdmepJqZLdZk5QSFINuXUBCwHFSgNQiGxCRP9avuUL4MR6P1BUlMSOXtN7KzdBkXnumXhzwosCwLZoI5oYfpvFMkaoe7M2gOsMhT1b'

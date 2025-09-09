@@ -15,7 +15,7 @@ export default StyleSheet.create({
     },
 
     header: {
-        backgroundColor: '#BB0000',
+        backgroundColor: '#000099',
         padding: 10,
         paddingTop: 50,
         paddingBottom: 40,
@@ -39,65 +39,168 @@ export default StyleSheet.create({
         marginLeft: 10
       },
 
-      logoContainer: {
-        alignItems: 'center',
-        padding: 20,
-        backgroundColor: 'white',
-        borderRadius: 20,
-        margin:20,
-        borderColor: '#BB0000',
-        borderWidth:1,
+      orText: {
+        marginTop: 20,
+        marginBottom: 10,
+        fontSize: 14,
+        color: '#666',
       },
+      
+      socialContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 20, 
+      },
+      
+      socialButton: {
+        padding: 10,
+        borderRadius: 50,
+        backgroundColor: '#f5f5f5',
+        elevation: 2, 
+        borderWidth: 2,        
+        borderColor: '#000099', 
+      },
+      
+      socialIcon: {
+        width: 30,
+        height: 30,
+        resizeMode: 'contain',
+      },
+      
 
+      background: {
+        flex: 1,
+        width: '100%',
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      box: {
+        width: '85%',
+        padding: 25,
+        borderWidth: 2,
+        borderColor: '#000099',
+        borderRadius: 20,
+        backgroundColor: 'rgba(255,255,255,0.7)',
+        alignItems: 'center',
+      },
+      box1: {
+        width: '100%',
+        padding: 25,
+        borderWidth: 2,
+        borderColor: '#000099',
+        borderRadius: 20,
+        backgroundColor: 'rgba(255,255,255,0.7)',
+        alignItems: 'center',
+      },
       logo: {
-        width: 70,
-        height: 70,
-        marginRight: 10,
+        width: 100,
+        height: 100,
+        marginBottom: 10,
+        resizeMode: 'contain',
         borderRadius: 50,
       },
       title: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#BB0000',
-        marginTop: 10,
+        color: '#000099',
+        marginBottom: 5,
       },
       subtitle: {
-        fontSize: 16,
-        color: '#757575',
-        marginTop:10
-      },
-      buttonContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginVertical: 20,
-      },
-      button: {
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        margin:10,
-        borderRadius: 25,
+        fontSize: 14,
+        color: '#333',
+        marginBottom: 20,
       },
       registerButton: {
-        backgroundColor: '#fff',
-        borderColor: '#BB0000',
-        borderWidth:1,
+        backgroundColor: '#FFF',
+        borderWidth: 2,
+        borderColor: '#000099',
+        borderRadius: 25,
+        paddingVertical: 12,
+        marginBottom: 20,
+        width: '100%',
+        alignItems: 'center',
+      },
+      registerText: {
+        color: '#000099',
+        fontWeight: '600',
         fontSize: 16,
-        fontWeight: 'bold',
       },
       loginButton: {
-        backgroundColor: '#BB0000',
+        backgroundColor: '#000099',
+        borderRadius: 25,
+        paddingVertical: 12,
+        width: '100%',
+        alignItems: 'center',
       },
-      buttonText: {
-        color: '#BB0000',
+      loginText: {
+        color: '#FFF',
+        fontWeight: '600',
         fontSize: 16,
-        fontWeight: 'bold',
+      },
+      tick: {
+        width: 20,
+        height: 20,
+        margin: 0,
+        padding: 0,
+        backgroundColor: '#ffffff', // nền trắng cho ô vuông
+        borderWidth: 1,             // viền ô
+        borderColor: '#000099',     // màu viền
+        borderRadius: 3
+      },
+      picker: {
+        backgroundColor: 'white', 
+        borderRadius: 10, 
+        borderWidth: 1, 
+        borderColor: '#000099', 
+        marginBottom: 10 
+
       },
 
-      buttonText2: {
+            // --- BẮT ĐẦU: style Home mới ---
+      topContainer: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingTop: 60, // cách status bar
+      paddingBottom: 20,
+      width: '100%',
+      backgroundColor: 'transparent', // trong suốt để hiện background
+    },
+
+      boxWhite: {                           // Chỗ này là box trắng phía dưới giống form đăng ký/đăng nhập
+        flex: 1,
+        backgroundColor: 'white',
+        borderTopLeftRadius: 25,
+        borderTopRightRadius: 25,
+        paddingVertical: 20,
+        paddingHorizontal: 15,
+      },
+
+      title1: {
+        fontSize: 32,
+        fontWeight: 'bold',
         color: 'white',
+        textShadowColor: 'black',    // tạo viền/đổ bóng
+        textShadowOffset: { width: 1, height: 1 },
+        textShadowRadius: 2,
+        marginBottom: 5,
+      },
+      
+      subtitle1: {
         fontSize: 16,
+        color: 'white',
+        marginBottom: 2,
+      },
+    
+
+
+      activityTitle: {                       // Tiêu đề cho section Gợi ý hoạt động
+        color: '#000099',
+        textAlign: 'center',
+        marginVertical: 10,
         fontWeight: 'bold',
       },
+      // --- KẾT THÚC: style Home mới ---
 
       featuresContainer: {
         flexDirection: 'row',
@@ -118,9 +221,9 @@ export default StyleSheet.create({
         borderRadius: 30,
         justifyContent: 'center',
         alignItems: 'center',
-        borderColor: '#BB0000',
+        borderColor: '#000099',
         borderWidth:1,
-        color:'#BB0000',
+        color:'#000099',
         fontSize:30
       },
       featureText: {
@@ -134,7 +237,7 @@ export default StyleSheet.create({
         justifyContent: 'space-around',
         paddingVertical: 10,
         borderTopWidth: 1,
-        borderTopColor: '#BB0000',
+        borderTopColor: '#000099',
         backgroundColor: 'white',
         position: 'absolute', 
         bottom: 0,
@@ -154,7 +257,7 @@ export default StyleSheet.create({
         alignItems: 'center',
         padding: 20,
         paddingBottom:20,
-        backgroundColor: '#BB0000',
+        backgroundColor: '#000099',
         borderRadius: 50,
         borderColor: 'white',
         borderWidth:1,
@@ -166,7 +269,7 @@ export default StyleSheet.create({
         fontWeight: 'bold',
         marginLeft: 16,
         marginVertical: 10,
-        color: '#B00000',
+        color: '#000099',
       },
       featureGrid: {
         flexDirection: 'row',
@@ -174,7 +277,7 @@ export default StyleSheet.create({
         justifyContent: 'center',
       },
       sectionTitle: {
-        color: '#B00000',
+        color: '#000099',
         textAlign: 'center',
         margin: 20,
         fontWeight: 'bold',
@@ -192,8 +295,8 @@ export default StyleSheet.create({
       },
       chatButton: {
         marginTop: 10,
-        borderColor: '#B00000',
-        color: '#B00000'
+        borderColor: '#000099',
+        color: '#000099'
       },
       roleButtons: {
         flexDirection: 'column',
@@ -217,7 +320,7 @@ export default StyleSheet.create({
       },
       footer: {
         borderTopWidth: 1,
-        borderTopColor: '#B00000',
+        borderTopColor: '#000099',
         paddingTop: 12,
         marginTop: 16,
         paddingHorizontal: 16,

@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, Button, ActivityIndicator, Platform, KeyboardAvoidingView, FlatList, Alert } from 'react-native';
-import { TextInput as PaperTextInput, Button as PaperButton, HelperText } from 'react-native-paper';
+import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, ImageBackground, TouchableOpacity } from 'react-native';
+import { TextInput, Button, HelperText, Card, Text } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authApis, endpoints } from '../../configs/Apis';
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import { useNavigation } from '@react-navigation/native';
 
 const HealthTracker = () => {
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
-  const [goal, setGoal] = useState('Giữ dáng');
   const [steps, setSteps] = useState(0);
   const [water, setWater] = useState(0);
   const [heartRate, setHeartRate] = useState('');
@@ -15,9 +16,12 @@ const HealthTracker = () => {
   const [loading, setLoading] = useState(false);
   const [healthRecords, setHealthRecords] = useState([]);
 
-  const bmi = height && weight && !isNaN(height) && !isNaN(weight)
-    ? (weight / ((height / 100) ** 2)).toFixed(1)
-    : 'N/A';
+  const navigation = useNavigation();
+
+  const bmi =
+    height && weight && !isNaN(height) && !isNaN(weight)
+      ? (weight / ((height / 100) ** 2)).toFixed(1)
+      : 'N/A';
 
   const getBmiStatus = () => {
     const val = parseFloat(bmi);
@@ -30,7 +34,7 @@ const HealthTracker = () => {
 
   const validate = () => {
     if (!height || !weight) {
-      setMsg('Vui lòng nhập đầy đủ thông tin chiều cao và cân nặng!');
+      setMsg('Vui lòng nhập đầy đủ chiều cao và cân nặng!');
       return false;
     }
     if (isNaN(height) || isNaN(weight)) {
@@ -45,14 +49,16 @@ const HealthTracker = () => {
     try {
       const token = await AsyncStorage.getItem('token');
       if (!token) throw new Error('No token found');
-
+  
       const api = authApis(token);
       const res = await api.get(endpoints['healthrecord-list']);
-
-      setHealthRecords(res.data);
+  
+      // đảm bảo healthRecords luôn là array
+      const records = Array.isArray(res.data) ? res.data : [];
+      setHealthRecords(records);
     } catch (err) {
-      console.error(err);
-      Alert.alert('Lỗi', 'Không thể tải dữ liệu sức khỏe!');
+      console.error('Error fetching health records:', err);
+      setHealthRecords([]); // tránh map undefined
     }
   };
 
@@ -75,88 +81,175 @@ const HealthTracker = () => {
         weight: parseFloat(weight),
         steps: steps,
         water_intake: water,
-        heart_rate: parseInt(heartRate),
+        heart_rate: heartRate ? parseInt(heartRate) : null,
       };
 
       await api.post(endpoints['healthrecord-create'], data);
-
       await fetchRecords();
 
       setHeight('');
       setWeight('');
-      setGoal('Giữ dáng');
       setSteps(0);
       setWater(0);
       setHeartRate('');
     } catch (err) {
       console.error(err);
-      Alert.alert('Lỗi', 'Không thể lưu dữ liệu!');
     } finally {
       setLoading(false);
     }
   };
 
-  const renderRecordItem = ({ item }) => (
-    <View style={styles.card}>
-      <Text style={styles.label}>Chiều cao: {item.height} cm</Text>
-      <Text style={styles.label}>Cân nặng: {item.weight} kg</Text>
-      <Text style={styles.label}>Bước chân: {item.steps}</Text>
-      <Text style={styles.label}>Nước uống: {item.water_intake} ml</Text>
-      <Text style={styles.label}>Nhịp tim: {item.heart_rate}</Text>
-    </View>
-  );
-
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-      <FlatList
-        ListHeaderComponent={
-          <View style={styles.content}>
+    <ImageBackground 
+      source={require('../../assets/Images/background1.jpg')} 
+      style={{ flex: 1 }}
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView contentContainerStyle={styles.container}>
+          <View style={styles.box}>
+            <View style={styles.header}>
+              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.arrowButton}>
+                <MaterialIcons name="arrow-back-ios" size={20} color="#000099" />
+              </TouchableOpacity>
+              <Text style={styles.title}>Theo dõi sức khỏe</Text>
+            </View>
+
             <View style={styles.bmiContainer}>
-              <Text style={styles.bmiTitle}>Chỉ số cơ thể (BMI)</Text>
-              <Text style={styles.bmi}>{bmi}</Text>
+              <Text style={styles.bmiTitle}>BMI: {bmi}</Text>
               <Text style={styles.bmiStatus}>{getBmiStatus()}</Text>
             </View>
 
-            <HelperText type="error" visible={!!msg}>{msg}</HelperText>
+            {msg ? <Text style={styles.errorText}>{msg}</Text> : null}
 
-            <PaperTextInput label="Chiều cao (cm)" keyboardType="numeric" value={height} onChangeText={setHeight} mode="outlined" style={styles.input} theme={{ colors: { primary: '#B00000' } }} />
-            <PaperTextInput label="Cân nặng (kg)" keyboardType="numeric" value={weight} onChangeText={setWeight} mode="outlined" style={styles.input} theme={{ colors: { primary: '#B00000' } }} />
-            <PaperTextInput label="Nhịp tim" keyboardType="numeric" value={heartRate} onChangeText={setHeartRate} mode="outlined" style={styles.input} theme={{ colors: { primary: '#B00000' } }} />
+            <TextInput
+              label="Chiều cao (cm)"
+              value={height}
+              onChangeText={setHeight}
+              keyboardType="numeric"
+              style={styles.input}
+              mode="outlined"
+            />
 
-            <View style={styles.card}>
-              <Text style={styles.label}>Bước chân hôm nay: {steps}</Text>
-              <Button title="+100 bước" onPress={() => setSteps(prev => prev + 100)} />
+            <TextInput
+              label="Cân nặng (kg)"
+              value={weight}
+              onChangeText={setWeight}
+              keyboardType="numeric"
+              style={styles.input}
+              mode="outlined"
+            />
+
+            <TextInput
+              label="Nhịp tim"
+              value={heartRate}
+              onChangeText={setHeartRate}
+              keyboardType="numeric"
+              style={styles.input}
+              mode="outlined"
+            />
+
+            {/* Ô nhập bước chân có + - */}
+            <View style={styles.row}>
+              <Button mode="outlined" onPress={() => setSteps(prev => Math.max(0, prev - 10))}>-</Button>
+              <TextInput
+                label="Bước chân"
+                value={steps.toString()}
+                onChangeText={(val) => setSteps(parseInt(val) || 0)}
+                keyboardType="numeric"
+                style={[styles.input, { flex: 1, marginHorizontal: 8 }]}
+                mode="outlined"
+              />
+              <Button mode="outlined" onPress={() => setSteps(prev => prev + 10)}>+</Button>
             </View>
 
-            <View style={styles.card}>
-              <Text style={styles.label}>Nước đã uống: {water} ml</Text>
-              <Button title="+250ml" onPress={() => setWater(prev => prev + 250)} />
+            {/* Ô nhập nước uống có + - */}
+            <View style={styles.row}>
+              <Button mode="outlined" onPress={() => setWater(prev => Math.max(0, prev - 10))}>-</Button>
+              <TextInput
+                label="Nước uống (ml)"
+                value={water.toString()}
+                onChangeText={(val) => setWater(parseInt(val) || 0)}
+                keyboardType="numeric"
+                style={[styles.input, { flex: 1, marginHorizontal: 8 }]}
+                mode="outlined"
+              />
+              <Button mode="outlined" onPress={() => setWater(prev => prev + 10)}>+</Button>
             </View>
 
-            <PaperButton
+            <Button
               mode="contained"
-              onPress={handleSubmit}
-              style={{ marginTop: 20, backgroundColor: '#B00000' }}
+              buttonColor="#000099"
+              textColor="white"
+              loading={loading}
               disabled={loading}
+              style={styles.button}
+              onPress={handleSubmit}
             >
               Lưu thông tin
-            </PaperButton>
+            </Button>
 
-            {loading && <ActivityIndicator style={{ marginTop: 10 }} />}
+            {Array.isArray(healthRecords) && healthRecords.length > 0 ? (
+              healthRecords.map((item, index) => (
+                <Card key={index} style={styles.card}>
+                  <Card.Content>
+                    <Text>Chiều cao: {item?.height ?? "?"} cm</Text>
+                    <Text>Cân nặng: {item?.weight ?? "?"} kg</Text>
+                    <Text>Bước chân: {item?.steps ?? 0}</Text>
+                    <Text>Nước uống: {item?.water_intake ?? 0} ml</Text>
+                    <Text>Nhịp tim: {item?.heart_rate ?? "?"}</Text>
+                  </Card.Content>
+                </Card>
+              ))
+            ) : (
+              <Text style={{ textAlign: 'center', marginTop: 12 }}>
+                Chưa có dữ liệu sức khỏe!
+              </Text>
+            )}
           </View>
-        }
-        data={healthRecords}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderRecordItem}
-        contentContainerStyle={{ padding: 20, paddingBottom: 30 }}
-      />
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  content: {
+  container: {
+    flexGrow: 1,
+    paddingVertical: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    position: 'relative',
+  },
+  arrowButton: {
+    position: 'absolute',
+    left: 0,
+  },
+  box: {
+    width: '93%',
+    alignSelf: 'center',
     padding: 20,
+    borderRadius: 25,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderWidth: 1,
+    borderColor: '#000099',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 5,
+    elevation: 5,
+    marginBottom: 20,
+    marginTop: 50
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#000099",
   },
   bmiContainer: {
     alignItems: 'center',
@@ -165,30 +258,37 @@ const styles = StyleSheet.create({
   bmiTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#B00000',
-  },
-  bmi: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#B00000',
+    color: '#000099',
   },
   bmiStatus: {
     fontSize: 16,
     fontStyle: 'italic',
     color: '#666',
   },
-  input: {
-    marginBottom: 16,
+  errorText: {
+    color: 'red',
+    marginBottom: 12,
+    textAlign: 'center',
   },
-  card: {
-    backgroundColor: '#f5f5f5',
-    padding: 16,
-    borderRadius: 10,
+  input: {
+    marginBottom: 12,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 12,
   },
-  label: {
-    marginBottom: 8,
-    fontWeight: 'bold',
+  button: {
+    borderRadius: 12,
+    marginVertical: 12,
+  },
+  card: {
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: '#fff',
   },
 });
 

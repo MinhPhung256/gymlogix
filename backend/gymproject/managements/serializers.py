@@ -5,11 +5,15 @@ from managements.models import *
 class UserSerializer(ModelSerializer):
     confirm_password = serializers.CharField(write_only=True, required=True)
     avatar_url = serializers.SerializerMethodField()
+    role_name = serializers.SerializerMethodField()  # thêm field này
 
     def get_avatar_url(self, user):
         if user.avatar and hasattr(user.avatar, 'url'):
             return user.avatar.url
         return None
+
+    def get_role_name(self, user):
+        return user.get_role_display()
 
     def validate(self, attrs):
         if attrs.get('password') != attrs.get('confirm_password'):
@@ -26,7 +30,7 @@ class UserSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["id", "username", "password", "confirm_password", "avatar", "avatar_url", "first_name", "last_name", "email", "role"]
+        fields = ["id", "username", "password", "confirm_password", "avatar", "avatar_url", "first_name", "last_name", "email", "role", "role_name"]
         extra_kwargs = {
             'password': {
                 'write_only': True,
@@ -34,9 +38,10 @@ class UserSerializer(ModelSerializer):
             }
         }
 
-class ChangePasswordSerializer(ModelSerializer):
+class ChangePasswordSerializer(serializers.Serializer):
     current_password = CharField(write_only=True, required=True)
     new_password = CharField(write_only=True, required=True)
+    confirm_password = serializers.CharField(write_only=True, required=True)
 
     def validate_current_password(self, value):
         user = self.context['request'].user
@@ -61,18 +66,42 @@ class ActivitySerializer(serializers.ModelSerializer):
         model = Activity
         fields = ['id', 'name', 'description', 'calories_burned', 'image_url']
 
+class ActivityStatisticsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Activity
+        fields = ['date', 'calories_burned', 'time']
+
 class WorkoutPlanSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
-    activities = ActivitySerializer(many=True, read_only=True) # Nest Activity info
+    user = serializers.PrimaryKeyRelatedField(read_only=True)
+    activities = ActivitySerializer(many=True, read_only=True)
+
     class Meta:
         model = WorkoutPlan
         fields = ['id', 'user', 'name', 'date', 'activities', 'description', 'sets', 'reps']
 
+    def create(self, validated_data):
+        if 'name' not in validated_data:
+            validated_data['name'] = f'Kế hoạch {validated_data.get("date")}'
+        return super().create(validated_data)
+
+
+
 class MealPlanSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    user = UserSerializer(read_only=True)
+
     class Meta:
         model = MealPlan
         fields = ['id', 'user', 'name', 'date', 'description', 'calories_intake']
+
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
+
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.image and request:
+            return request.build_absolute_uri(obj.image.url)
+        return None
 
 class CoachProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
@@ -101,10 +130,10 @@ class ChatMessageSerializer(serializers.ModelSerializer):
         model = ChatMessage
         fields = ['id', 'sender', 'receiver', 'message', 'timestamp', 'is_read']
 
-class TagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Tag
-        fields = ['id', 'name']
+# class TagSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Tag
+#         fields = ['id', 'name']
 
 class UserGoalSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
