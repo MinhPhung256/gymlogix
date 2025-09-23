@@ -5,6 +5,7 @@ from ckeditor.fields import RichTextField
 from cloudinary.models import CloudinaryField
 from enum import IntEnum
 
+
 class BaseModel(models.Model):
     created_date = models.DateField(auto_now_add=True, null=True)
     updated_date = models.DateField(auto_now=True, null=True)
@@ -13,6 +14,7 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
         ordering = ['-id']
+
 
 class Role(IntEnum):
     Admin = 0
@@ -23,8 +25,9 @@ class Role(IntEnum):
     def choices(cls):
         return [(role.value, role.name.capitalize()) for role in cls]
 
+
 class User(AbstractUser):
-    avatar = CloudinaryField('avatar', null=True, blank=True, folder='avatar' ,default='')
+    avatar = CloudinaryField('avatar', null=True, blank=True, folder='avatar', default='')
     email = models.EmailField(unique=True, null=False, max_length=255)
     role = models.IntegerField(
         choices=Role.choices(),
@@ -33,6 +36,7 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
 
 class Activity(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -47,6 +51,7 @@ class Activity(BaseModel):
     def __str__(self):
         return self.name
 
+
 class WorkoutPlan(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
@@ -59,18 +64,21 @@ class WorkoutPlan(BaseModel):
     def __str__(self):
         return self.name
 
+
 class MealPlan(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
-    date = models.DateField()  # Removed default=timezone.now
+    date = models.DateField()
     description = RichTextField(null=True, blank=True)
     calories_intake = models.FloatField(null=True, blank=True)
-    goal = models.CharField(max_length=20, choices=[('maintain', 'Duy trì'), ('lose', 'Giảm cân'), ('gain', 'Tăng cơ')],default='maintain')
-    image = models.ImageField(upload_to='mealplan_images/', null=True, blank=True)  # thêm ảnh
+    goal = models.CharField(max_length=20, choices=[('maintain', 'Duy trì'), ('lose', 'Giảm cân'), ('gain', 'Tăng cơ')], default='maintain')
+    image = models.ImageField(upload_to='mealplan_images/', null=True, blank=True)
     active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
+
+
 
 class CoachProfile(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -82,7 +90,6 @@ class CoachProfile(BaseModel):
     def __str__(self):
         return self.user.username
 
-
 class HealthRecord(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
@@ -93,12 +100,6 @@ class HealthRecord(BaseModel):
     weight = models.FloatField(null=True, blank=True)
     bmi = models.FloatField(editable=False, blank=True, null=True)
 
-    def save(self, *args, **kwargs):
-        try:
-            self.bmi = round(self.weight / ((self.height / 100) ** 2), 2)
-        except (TypeError, ZeroDivisionError):
-            self.bmi = None
-        super().save(*args, **kwargs)
 
 class HealthDiary(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -110,13 +111,14 @@ class HealthDiary(BaseModel):
         return f"{self.user.username} - {self.date}"
 
     class Meta:
-        unique_together = ('user', 'date')
+        unique_together = []
         ordering = ['-id']
+
 
 class ChatMessage(BaseModel):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
-    message = models.TextField()
+    message = models.CharField(max_length=1000)  # sửa từ TextField
     timestamp = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
 
@@ -125,24 +127,19 @@ class ChatMessage(BaseModel):
 
     class Meta:
         ordering = ['timestamp']
-        unique_together = ('sender', 'receiver', 'message', 'timestamp')
+        unique_together = ('sender', 'receiver', 'timestamp')
 
-
-# class Tag(BaseModel):
-#     name = models.CharField(max_length=50, unique=True)
-#
-#     def __str__(self):
-#         return self.name
 
 class UserGoal(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    goal_type = models.TextField(null=True, blank=True)
+    goal_type = models.CharField(max_length=50, null=True, blank=True)  # sửa từ TextField
     target_weight = models.FloatField(null=True, blank=True)
     target_date = models.DateField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"Mục tiêu của {self.user.username} - {self.goal_type}"
+
 
 class UserConnection(BaseModel):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_connections")

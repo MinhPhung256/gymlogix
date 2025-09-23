@@ -16,7 +16,7 @@ const Profile = () => {
 
   const logout = () => {
     dispatch({ type: "logout" });
-    nav.navigate("HomeStack", { screen: "Dashboard" });
+    // Không cần navigate gì nữa
   };
 
   useFocusEffect(
@@ -66,8 +66,10 @@ const Profile = () => {
   const menuItems = [
     { title: "Chỉnh sửa hồ sơ", screen: "EditProfile" },
     { title: "Đổi mật khẩu", screen: "ChangePassword" },
-    { title: "Lịch sử hoạt động", screen: "ActivityHistory" },
-    { title: "Cài đặt thông báo", screen: "NotificationSettings" },
+    { 
+      title: "Thống kê", 
+      screen: (role) => role === 1 ? "Statistics" : "StaUser" 
+    },
   ];
 
   return (
@@ -75,14 +77,13 @@ const Profile = () => {
       {/* Card thông tin user */}
       <Card style={styles.card}>
         <View style={styles.avatarContainer}>
-          {user.avatar ? (
-            <Image source={{ uri: user.avatar_url }} style={styles.avatar} />
-          ) : (
-            <Image
-              source={require("../../assets/Images/default_avatar.jpg")}
-              style={styles.avatar}
-            />
-          )}
+        <Image source={ 
+          user.avatar_url
+              ? { uri: user.avatar_url }
+              : require("../../assets/Images/default_avatar.jpg")
+          }
+          style={styles.avatar}
+        />
         </View>
         <Card.Content>
           <Text style={styles.label}>
@@ -107,16 +108,21 @@ const Profile = () => {
 
       {/* ===== PHẦN ĐÃ SỬA: menu card nằm dưới card chính ===== */}
       <View style={styles.menuContainer}>
-        {menuItems.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.menuCard}
-            onPress={() => nav.navigate(item.screen, { userId: user.id })}
-          >
-            <Text style={styles.menuText}>{item.title}</Text>
-            <MaterialCommunityIcons name="chevron-right" size={24} color="#000099" />
-          </TouchableOpacity>
-        ))}
+        {menuItems.map((item, index) => {
+          // Xác định screen dựa trên role nếu item.screen là function
+          const screenName = typeof item.screen === "function" ? item.screen(user.role) : item.screen;
+
+          return (
+            <TouchableOpacity
+              key={index}
+              style={styles.menuCard}
+              onPress={() => nav.navigate(screenName, { userId: user.id })}
+            >
+              <Text style={styles.menuText}>{item.title}</Text>
+              <MaterialCommunityIcons name="chevron-right" size={24} color="#000099" />
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {/* Button đăng xuất */}

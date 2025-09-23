@@ -2,10 +2,70 @@ from rest_framework import serializers
 from rest_framework.serializers import *
 from managements.models import *
 
-class UserSerializer(ModelSerializer):
-    confirm_password = serializers.CharField(write_only=True, required=True)
+class UserSerializer(serializers.ModelSerializer):
+    confirm_password = serializers.CharField(write_only=True, required=False)
     avatar_url = serializers.SerializerMethodField()
-    role_name = serializers.SerializerMethodField()  # thêm field này
+    role_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            "id", "username", "password", "confirm_password", "avatar_url",
+            "first_name", "last_name", "email", "role", "role_name"
+        ]
+        extra_kwargs = {"password": {"write_only": True}}
+
+    def get_avatar_url(self, obj):
+        if obj.avatar and hasattr(obj.avatar, 'url'):
+            return obj.avatar.url
+        return None
+
+    def get_role_name(self, obj):
+        role_map = {0: "Admin", 1: "Exerciser", 2: "Coach"}
+        return role_map.get(obj.role)
+
+    def validate(self, attrs):
+        # Nếu có password thì bắt buộc phải có confirm_password và phải khớp
+        if "password" in attrs or "confirm_password" in attrs:
+            if attrs.get("password") != attrs.get("confirm_password"):
+                raise serializers.ValidationError(
+                    {"password": "Mật khẩu xác nhận không khớp."}
+                )
+        return attrs
+
+    def create(self, validated_data):
+        validated_data.pop("confirm_password", None)
+        password = validated_data.pop("password", None)
+
+        user = User(**validated_data)
+        if password:
+            user.set_password(password)
+        user.role = validated_data.get("role", 0)
+        user.save()
+        return user
+
+    def update(self, instance, validated_data):
+        validated_data.pop("confirm_password", None)
+        password = validated_data.pop("password", None)
+        avatar = validated_data.get("avatar", None)
+
+        if avatar:
+            instance.avatar = avatar
+
+        # Cập nhật các field còn lại
+        for attr, value in validated_data.items():
+            if attr != "avatar":  # avatar đã gán
+                setattr(instance, attr, value)
+
+        if password:
+            instance.set_password(password)
+
+        instance.save()
+        return instance
+
+class UserReadSerializer(serializers.ModelSerializer):
+    avatar_url = serializers.SerializerMethodField()
+    role_name = serializers.SerializerMethodField()
 
     def get_avatar_url(self, user):
         if user.avatar and hasattr(user.avatar, 'url'):
@@ -15,28 +75,9 @@ class UserSerializer(ModelSerializer):
     def get_role_name(self, user):
         return user.get_role_display()
 
-    def validate(self, attrs):
-        if attrs.get('password') != attrs.get('confirm_password'):
-            raise serializers.ValidationError({"password": "Mật khẩu xác nhận không khớp."})
-        return attrs
-
-    def create(self, validated_data):
-        validated_data.pop('confirm_password')  # Xoá confirm_password trước khi lưu
-        u = User(**validated_data)
-        u.role = validated_data.get('role', 0) # mặc định
-        u.set_password(validated_data['password'])  # mã hoá mật khẩu
-        u.save()
-        return u
-
     class Meta:
         model = User
-        fields = ["id", "username", "password", "confirm_password", "avatar", "avatar_url", "first_name", "last_name", "email", "role", "role_name"]
-        extra_kwargs = {
-            'password': {
-                'write_only': True,
-                'required': False
-            }
-        }
+        fields = ["id", "username", "first_name", "last_name", "email", "avatar_url", "role", "role_name"]
 
 class ChangePasswordSerializer(serializers.Serializer):
     current_password = CharField(write_only=True, required=True)
@@ -72,12 +113,15 @@ class ActivityStatisticsSerializer(serializers.ModelSerializer):
         fields = ['date', 'calories_burned', 'time']
 
 class WorkoutPlanSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
-    activities = ActivitySerializer(many=True, read_only=True)
+    user = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    activities = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Activity.objects.all()
+    )
 
     class Meta:
         model = WorkoutPlan
         fields = ['id', 'user', 'name', 'date', 'activities', 'description', 'sets', 'reps']
+
 
     def create(self, validated_data):
         if 'name' not in validated_data:
@@ -87,21 +131,34 @@ class WorkoutPlanSerializer(serializers.ModelSerializer):
 
 
 class MealPlanSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    # Sử dụng UserReadSerializer
+    user = UserReadSerializer(read_only=True)
+
+    # Thêm trường image_url
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = MealPlan
-        fields = ['id', 'user', 'name', 'date', 'description', 'calories_intake']
+        fields = ['id', 'user', 'name', 'date', 'description', 'calories_intake', 'image_url']
+
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.image:
+            # build_absolute_uri trả về URL đầy đủ
+            return request.build_absolute_uri(obj.image.url)
+        return None
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
 
-    def get_image_url(self, obj):
-        request = self.context.get('request')
-        if obj.image and request:
-            return request.build_absolute_uri(obj.image.url)
-        return None
+class UserGoalSerializer(serializers.ModelSerializer):
+    # Đã sửa: Sử dụng UserReadSerializer
+    user = UserReadSerializer(read_only=True)
+    class Meta:
+        model = UserGoal
+        fields = ['id', 'user', 'goal_type', 'target_weight', 'target_date', 'description']
+        read_only_fields = ['user']
 
 class CoachProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
@@ -111,21 +168,36 @@ class CoachProfileSerializer(serializers.ModelSerializer):
 
 class HealthRecordSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
+
     class Meta:
         model = HealthRecord
         fields = ['id', 'user', 'bmi', 'water_intake', 'steps', 'heart_rate', 'height', 'weight', 'date']
         read_only_fields = ['bmi']
 
+    def create(self, validated_data):
+        if validated_data is None:
+            validated_data = {}
+        height = validated_data.get('height')
+        weight = validated_data.get('weight')
+        if height and weight and height > 0:
+            validated_data['bmi'] = weight / ((height / 100) ** 2)
+        else:
+            validated_data['bmi'] = None
+        return super().create(validated_data)
+
+
 class HealthDiarySerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
+    date = serializers.DateTimeField(read_only=True)
+
     class Meta:
         model = HealthDiary
         fields = ['id', 'user', 'date', 'content', 'feeling']
 
-
 class ChatMessageSerializer(serializers.ModelSerializer):
-    sender = UserSerializer()
-    receiver = UserSerializer()
+    sender = UserReadSerializer(read_only=True)
+    receiver = UserReadSerializer(read_only=True)
+
     class Meta:
         model = ChatMessage
         fields = ['id', 'sender', 'receiver', 'message', 'timestamp', 'is_read']
@@ -134,13 +206,6 @@ class ChatMessageSerializer(serializers.ModelSerializer):
 #     class Meta:
 #         model = Tag
 #         fields = ['id', 'name']
-
-class UserGoalSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
-    class Meta:
-        model = UserGoal
-        fields = ['id', 'user', 'goal_type', 'target_weight', 'target_date', 'description']
-        read_only_fields = ['user']
 
 class UserConnectionSerializer(serializers.ModelSerializer):
     user = UserSerializer()

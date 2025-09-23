@@ -37,8 +37,8 @@ const WorkoutPlan = () => {
     }
   };
 
-  const addWorkout = async (workout) => {
-    if (!workout.trim()) {
+  const addWorkout = async (workoutName) => {
+    if (!workoutName.trim()) {
       Alert.alert('Lỗi', 'Tên bài tập không được để trống');
       return;
     }
@@ -46,42 +46,43 @@ const WorkoutPlan = () => {
       Alert.alert('Chọn ngày trước');
       return;
     }
-  
-    // Cập nhật danh sách bài tập local
+
     const current = workouts[selectedDate] || [];
-    const newActivity = { name: workout, sets: 3, reps: 10 };
+    const newActivity = { name: workoutName, sets: 3, reps: 10 }; // local
     const updated = [...current, newActivity];
     const updatedWorkouts = { ...workouts, [selectedDate]: updated };
-  
-    if (!suggestedWorkouts.includes(workout) && !customWorkouts.includes(workout)) {
-      setCustomWorkouts([...customWorkouts, workout]);
+
+    if (!suggestedWorkouts.includes(workoutName) && !customWorkouts.includes(workoutName)) {
+      setCustomWorkouts([...customWorkouts, workoutName]);
     }
-  
+
     saveWorkouts(updatedWorkouts);
     setCustomWorkout('');
-    setDialogVisible(false);
-  
-    // Tạo payload chuẩn cho backend
+
+    // Payload chuẩn Django
     const payload = {
-      name: `Kế hoạch ${selectedDate.split('-').reverse().join('-')}`, // ngày-tháng-năm
-      date: selectedDate,
+      name: `Kế hoạch ${selectedDate.split('-').reverse().join('-')}`,
+      date: selectedDate, // YYYY-MM-DD
       description: '',
-      activities: updated,
+      activities: updated.map(a => ({
+        exercise_name: a.name,
+        sets: a.sets,
+        reps: a.reps,
+      })),
     };
-  
-    // Lưu lên server
+
     try {
       const token = await AsyncStorage.getItem('token');
+      if (!token) throw new Error('Chưa có token');
       await createOrUpdateWorkoutPlan(token, payload);
       console.log('Lưu kế hoạch luyện tập thành công');
     } catch (error) {
-      console.error('Lỗi lưu kế hoạch luyện tập:', error);
+      console.warn('API lỗi, lưu local tạm thời:', error.message);
     }
   };
-  
 
   const removeWorkout = (itemIndex) => {
-    if (!selectedDate) return;
+    if (!selectedDate || !workouts[selectedDate]) return;
     const updated = workouts[selectedDate].filter((_, idx) => idx !== itemIndex);
     const updatedWorkouts = { ...workouts, [selectedDate]: updated };
     saveWorkouts(updatedWorkouts);
@@ -101,18 +102,14 @@ const WorkoutPlan = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.box}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 30, marginTop: 15 }}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 50}}>
+            <View style={styles.header}>
+              <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 10 }}>
                 <MaterialIcons name="arrow-back-ios" size={24} color="#000099" />
               </TouchableOpacity>
-
-              <Text style={{ fontSize: 22, fontWeight: 'bold', color: '#000099' }}>
-                Kế hoạch tập luyện
-              </Text>
+              <Text style={styles.title}>Kế hoạch tập luyện</Text>
             </View>
-
 
             <Calendar
               onDayPress={(day) => setSelectedDate(day.dateString)}
@@ -208,58 +205,54 @@ const WorkoutPlan = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    paddingVertical: 20,
-    paddingHorizontal: 0,
-  },
+  scrollContainer: { flexGrow: 1, paddingVertical: 0, paddingHorizontal: 0 },
   box: {
-    width: '95%',
-    alignSelf: 'center',
+    width: '100%',
     padding: 20,
     borderRadius: 25,
-    backgroundColor: 'rgba(255,255,255,0.8)',
+    backgroundColor: 'rgba(255,255,255,0.9)',
     borderWidth: 1,
     borderColor: '#000099',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 5,
     elevation: 5,
-    marginBottom: 20,
-    marginTop: 50
+    marginTop:60
   },
-  arrowButton: {
-    marginBottom: 12,
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    marginBottom: 20, 
+    marginTop: 10 
   },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#000099",
-    textAlign: 'center',
-    marginBottom:30
-
+  title: { 
+    fontSize: 22, 
+    fontWeight: 'bold', 
+    color: '#000099', 
+    marginLeft: 30, 
+    marginBottom: 10 
   },
-  sectionTitle: {
-    fontWeight: 'bold',
-    color: '#000099',
-    marginBottom: 8,
-    marginTop: 12,
+  sectionTitle: { 
+    fontWeight: 'bold', 
+    color: '#000099', 
+    marginBottom: 8, 
+    marginTop: 12 
   },
-  input: {
-    marginBottom: 12,
-    backgroundColor: '#fff',
-    borderRadius: 12,
+  input: { 
+    marginBottom: 12, 
+    backgroundColor: '#fff', 
+    borderRadius: 12 
   },
-  addButton: {
-    marginBottom: 8,
-    borderColor: '#000099',
-    borderWidth: 1,
-    borderRadius: 12,
+  addButton: { 
+    marginBottom: 8, 
+    borderColor: '#000099', 
+    borderWidth: 1, 
+    borderRadius: 12 
   },
-  card: {
-    marginBottom: 8,
-    borderRadius: 12,
-    backgroundColor: '#fff',
+  card: { 
+    marginBottom: 8, 
+    borderRadius: 12, 
+    backgroundColor: '#fff' 
   },
 });
 

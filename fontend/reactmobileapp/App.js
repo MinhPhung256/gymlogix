@@ -6,7 +6,8 @@ import { Provider as PaperProvider } from 'react-native-paper';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MyDispatchContext, MyUserContext } from "./configs/UserContext";
 import { useContext, useReducer } from "react";
-import ActivityDetail from "./components/ActivityDetail";
+import ActivityDetail from "./components/User1/ActivityDetail";
+import UserDetail from "./components/User/UserDetail";
 import ChooseRole from "./components/User/ChooseRole";
 import CreateGoal from "./components/User1/Goal";
 import Dashboard from "./components/Home/Dashboard";
@@ -14,6 +15,8 @@ import EditProfile from "./components/User/EditProfile";
 import ExpertInfo from "./components/user2/ExpertInfo";
 import HealthDiary from "./components/User1/HealthDiary";
 import Home from "./components/Home/Home";
+import HomeExpert from "./components/Home/HomeExpert";
+import Chat from "./components/User1/Chat"
 import Login from "./components/User/Login";
 import MealPlan from "./components/User1/MealPlan";
 import MyUserReducer from "./configs/UserReducer";
@@ -23,7 +26,9 @@ import Register from "./components/User/Register";
 import Reminders from "./components/User1/Reminders";
 import WorkoutPlan from "./components/User1/WorkoutPlan";
 import ChangePassword from "./components/User/ChangePassword";
-// import HomeExpert from "./components/HomeExpert";
+import Statistics from "./components/User1/Statistics";
+import StaUser from "./components/user2/StaUser";
+import Connects from "./components/User1/Connects";
 
 const Stack = createNativeStackNavigator();
 
@@ -76,7 +81,7 @@ const HomeStack = () => {
       <Stack.Screen name="ProfileInput" component={ProfileInput} options={{title: "Theo dõi sức khoẻ", headerShown: false}}/>
       <Stack.Screen name="MealPlan" component={MealPlan} options={{title: "Thực đơn dinh dưỡng", headerShown: false}}/>
       <Stack.Screen name="WorkoutPlan" component={WorkoutPlan} options={{title: "Lịch tập luyện", headerShown: false}}/>
-      <Stack.Screen name="ActivityDetail" component={ActivityDetail} options={{title: "Hoạt động"}}/>
+      <Stack.Screen name="ActivityDetail" component={ActivityDetail} options={{title: "Hoạt động", headerShown: false}}/>
       <Stack.Screen name="CreateGoal" component={CreateGoal} options={{title: "Mục tiêu", headerShown: false }}/>
     </Stack.Navigator>
   );
@@ -106,10 +111,36 @@ const ProfileStack = () => {
           <Stack.Screen name="Profile" component={Profile} options={{ title: 'Tài khoản', headerBackVisible: false }} />
           <Stack.Screen name="EditProfile" component={EditProfile} options={{ title: 'Chỉnh sửa thông tin', headerShown: false  }} />
           <Stack.Screen name="ChangePassword" component={ChangePassword} options={{ title: 'Đổi mật khẩu', headerShown: false  }} />
-
+          <Stack.Screen name="Statistics" component={Statistics} options={{ title: 'Thống kê', headerShown: false  }} />
+          <Stack.Screen name="StaUser" component={StaUser} options={{ title: 'Thống kê', headerShown: false  }} />
       </Stack.Navigator>
   );
 };
+
+const InfoStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerBackTitleVisible: false,
+        headerTitleStyle: {
+          color: 'white',
+          fontSize: 22
+        },
+        headerTintColor: 'white',
+        headerBackground: () => (
+          <ImageBackground
+            source={require('../reactmobileapp/assets/Images/background1.jpg')}
+            style={{ flex: 1 }}
+            resizeMode="cover"
+          />
+        ),
+      }}
+    >
+      <Stack.Screen name="ExpertInfo" component={ExpertInfo} options={{ title: 'Kết nối', headerBackVisible: false }} />
+    </Stack.Navigator>
+  )
+
+}
 
 const ReminderStack = () => {
   return (
@@ -135,6 +166,30 @@ const ReminderStack = () => {
   );
 };
 
+const ConnectStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerBackTitleVisible: false,
+        headerTitleStyle: {
+          color: 'white',
+          fontSize: 22
+        },
+        headerTintColor: 'white',
+        headerBackground: () => (
+          <ImageBackground
+            source={require('../reactmobileapp/assets/Images/background1.jpg')}
+            style={{ flex: 1 }}
+            resizeMode="cover"
+          />
+        ),
+      }}
+    >
+          <Stack.Screen name="Connects" component={Connects} options={{ title: 'Kết nối', headerBackVisible: false }} />
+          <Stack.Screen name="ChatStack" component={ChatStack} options={{ title: 'Tin nhắn', headerShown: false }} />
+      </Stack.Navigator>
+  );
+};
 
 const DiaryStack = () => {
   return (
@@ -160,11 +215,53 @@ const DiaryStack = () => {
   );
 };
 
+const ChatStack = () => {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerBackTitleVisible: false,
+        headerTitleStyle: {
+          color: 'white',
+          fontSize: 22
+        },
+        headerTintColor: 'white',
+        headerBackground: () => (
+          <ImageBackground
+            source={require('../reactmobileapp/assets/Images/background1.jpg')}
+            style={{ flex: 1 }}
+            resizeMode="cover"
+          />
+        ),
+      }}
+    >
+          <Stack.Screen name="Chat" component={Chat} options={{ title: 'Tin nhắn', headerBackVisible: false }} />
+      </Stack.Navigator>
+  );
+};
+
 const CoachStack = () => {
   return (
-      <Stack.Navigator>
-          <Stack.Screen name="HomeExpert" component={HomeExpert} options={{ title: 'SỔ TAY QUẢN LÝ SỨC KHOẺ', headerBackVisible: false }} />
-          <Stack.Screen name="ActivityDetail" component={ActivityDetail} options={{title: "Hoạt động"}}/>
+       <Stack.Navigator
+       screenOptions={{
+        headerStyle: {
+          backgroundColor: '#000099'
+        },
+        headerTitleStyle: {
+          color: 'white',
+          fontSize: 20
+        },
+        headerTintColor: 'white',
+        headerBackground: () => (
+          <ImageBackground
+            source={require('../reactmobileapp/assets/Images/background1.jpg')}
+            style={{ flex: 1 }}
+            resizeMode="cover"
+          />
+        ),
+      }}
+    >
+          <Stack.Screen name="HomeExpert" component={HomeExpert} options={{ title: 'SỔ TAY QUẢN LÝ SỨC KHOẺ', headerShown: false  }} />
+          <Stack.Screen name="UserDetail" component={UserDetail} options={{title: "Thông tin", headerShown: false}}/>
           
       </Stack.Navigator>
   );
@@ -172,14 +269,6 @@ const CoachStack = () => {
 
 
 
-
-const ChatStack = () => {
-  return (
-      <Stack.Navigator>
-          <Stack.Screen name="Chat" component={Chat} options={{ title: 'Tin nhắn' }} />
-      </Stack.Navigator>
-  );
-};
 
 const Tab = createBottomTabNavigator();
 const TabNavigator = () => {
@@ -201,12 +290,13 @@ const TabNavigator = () => {
             {user.role === 1 && <>
               <Tab.Screen name="HomeStack" component={HomeStack} options={{ headerShown: false, tabBarLabel: 'Trang chủ', tabBarIcon: ({ color, size }) => <Icon source="home" color={color} size={size} /> }} />
               <Tab.Screen name="DiaryStack" component={DiaryStack} options={{ headerShown: false, tabBarLabel: 'Nhật kí', tabBarIcon: ({ color, size }) => <Icon source="book" color={color} size={size} /> }} />
+              <Tab.Screen name="ConnectStack" component={ConnectStack} options={{ headerShown: false, tabBarLabel: 'Kết nối', tabBarIcon: ({ color, size }) => <Icon source="account" color={color} size={size} /> }} />
               <Tab.Screen name="ReminderStack" component={ReminderStack} options={{headerShown: false, tabBarLabel: 'Thông báo', tabBarIcon: ({ color, size }) => <Icon source="bell" color={color} size={size} /> }} />
             </>}
             {user.role === 2 && <>
               <Tab.Screen name="CoachStack" component={CoachStack} options={{ headerShown: false, tabBarLabel: 'Trang chủ', tabBarIcon: ({ color, size }) => <Icon source="home" color={color} size={size} /> }} />
-              <Tab.Screen name="ExpertInfo" component={ExpertInfo} options={{ tabBarLabel: 'Kết nối', tabBarIcon: ({ color, size }) => <Icon source="account-group" color={color} size={size} /> }} />
-              <Tab.Screen name="ChatStack" component={ChatStack} options={{ tabBarLabel: 'Tin nhắn', tabBarIcon: ({ color, size }) => <Icon source="chat" color={color} size={size} /> }} />
+              <Tab.Screen name="InfoStack" component={InfoStack} options={{ headerShown: false, tabBarLabel: 'Kết nối', tabBarIcon: ({ color, size }) => <Icon source="account-group" color={color} size={size} /> }} />
+              <Tab.Screen name="ChatStack" component={ChatStack} options={{ headerShown: false, tabBarLabel: 'Tin nhắn', tabBarIcon: ({ color, size }) => <Icon source="chat" color={color} size={size} /> }} />
             </>}
             <Tab.Screen name="ProfileStack" component={ProfileStack} options={{ headerShown: false, tabBarLabel: 'Người dùng', tabBarIcon: ({ color, size }) => <Icon source="account-cog" color={color} size={size} /> }} />
           </>

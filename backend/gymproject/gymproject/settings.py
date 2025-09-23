@@ -165,6 +165,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+# settings.py
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -193,5 +197,5 @@ SOCIAL_AUTH_FACEBOOK_SECRET = ''
 # reCAPTCHA (nếu có)
 RECAPTCHA_SECRET_KEY = ''
 
-CLIENT_ID = 'xYf9dz566bhcch6VOmFTMVdipHPN1p0AOSuiIb5W'
-CLIENT_SECRET = 'nTImOFAiQf0IGZgM8fgPGXJDZQwdmepJqZLdZk5QSFINuXUBCwHFSgNQiGxCRP9avuUL4MR6P1BUlMSOXtN7KzdBkXnumXhzwosCwLZoI5oYfpvFMkaoe7M2gOsMhT1b'
+CLIENT_ID = 'Xq5rTfy5f92tDlR3XRquM6Dl1Zcyxz7Ob1u4nJ3b'
+CLIENT_SECRET = 'Iv7FCsUHiiOY8kDwieIbKZXEhff2Z1okuYU0pH3v5aeRyS9AoaFeJJIChakBR87yiGpnyeNoH7iLplVy7YmzWiwKsTjaLnK1THmb3gqxVNs19jcbG6lZ3wC70JxSEK0x'

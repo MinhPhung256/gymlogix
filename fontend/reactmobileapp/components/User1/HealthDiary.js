@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, KeyboardAvoidingView, Platform, Alert, StyleSheet, View, ActivityIndicator, TouchableOpacity, Text as RNText } from 'react-native';
-import { TextInput, Button, Text, Card, IconButton } from 'react-native-paper';
+import { ScrollView, KeyboardAvoidingView, Platform, Alert, StyleSheet, View, ActivityIndicator, Text as RNText } from 'react-native';
+import { TextInput, Button, Card, IconButton } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { endpoints, authApis } from '../../configs/Apis';
 
@@ -10,7 +10,6 @@ const HealthDiary = () => {
   const [feeling, setFeeling] = useState('');
   const [editId, setEditId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [nextPage, setNextPage] = useState(null);
 
   const styles = getStyles();
 
@@ -19,9 +18,19 @@ const HealthDiary = () => {
     try {
       const token = await AsyncStorage.getItem('token');
       if (!token) throw new Error('No token found');
+
       const res = await authApis(token).get(endpoints['healthdiary-my-diaries']);
-      setDiary(Array.isArray(res.data) ? res.data : []);
-      setNextPage(null);
+
+      let diariesData = [];
+      if (Array.isArray(res.data)) {
+        diariesData = res.data;
+      } else if (res.data?.results) {
+        diariesData = res.data.results;
+      }
+
+      diariesData.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      setDiary(diariesData);
     } catch (err) {
       console.error("Lỗi khi tải nhật ký:", err);
       Alert.alert('Lỗi', 'Không thể tải nhật ký');
@@ -40,29 +49,40 @@ const HealthDiary = () => {
     setLoading(true);
     try {
       const token = await AsyncStorage.getItem('token');
-      if (!token) throw new Error('No token found');
+      if (!token) throw new Error('Chưa có token');
+
+      const payload = {
+        content: text.trim(),
+        feeling: isNaN(Number(feeling)) ? feeling.trim() : Number(feeling),
+        date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+      };
 
       if (editId) {
-        await authApis(token).put(`${endpoints['healthdiary-list']}${editId}/`, {
-          content: text.trim(),
-          feeling: feeling.trim(),
-        });
+        await authApis(token).put(`${endpoints['healthdiary-list']}${editId}/`, payload);
         Alert.alert('Cập nhật thành công');
       } else {
-        await authApis(token).post(endpoints['healthdiary-list'], {
-          content: text.trim(),
-          feeling: feeling.trim(),
-        });
+        await authApis(token).post(endpoints['healthdiary-list'], payload);
         Alert.alert('Đã lưu nhật ký');
       }
 
       setText('');
       setFeeling('');
       setEditId(null);
+
       await loadDiary();
     } catch (err) {
       console.error("Lỗi khi lưu nhật ký:", err);
-      Alert.alert('Lỗi', 'Không thể lưu nhật ký');
+      Alert.alert('Lỗi', 'Không thể lưu nhật ký. Dữ liệu vẫn được giữ local tạm thời.');
+
+      const local = await AsyncStorage.getItem('healthDiaryLocal');
+      const localArr = local ? JSON.parse(local) : [];
+      const tempEntry = { id: Date.now(), content: text, feeling, date: new Date().toISOString() };
+      await AsyncStorage.setItem('healthDiaryLocal', JSON.stringify([tempEntry, ...localArr]));
+      setDiary(prev => [tempEntry, ...prev]);
+
+      setText('');
+      setFeeling('');
+      setEditId(null);
     } finally {
       setLoading(false);
     }
@@ -98,7 +118,9 @@ const HealthDiary = () => {
     ]);
   };
 
-  useEffect(() => { loadDiary(); }, []);
+  useEffect(() => {
+    loadDiary();
+  }, []);
 
   return (
     <KeyboardAvoidingView
@@ -167,7 +189,9 @@ const HealthDiary = () => {
             <Card key={id} style={styles.card}>
               <View style={styles.row}>
                 <View>
-                  <RNText style={styles.dateText}>{date ? new Date(date).toLocaleString() : 'Không rõ ngày'}</RNText>
+                  <RNText style={styles.dateText}>
+                    {date ? new Date(date).toLocaleDateString() : 'Không rõ ngày'}
+                  </RNText>
                 </View>
                 <View style={styles.cardActions}>
                   <IconButton icon="pencil" size={20} onPress={() => startEdit(id, content, feeling)} />

@@ -1,20 +1,23 @@
-from rest_framework import viewsets, generics, status
+from rest_framework import viewsets, generics, status, permissions
 from .serializers import *
+from django.db.models import Q
 from managements import paginators
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from .paginators import Pagination
 from .perms import *
-from rest_framework.parsers import MultiPartParser, JSONParser
+from rest_framework.parsers import MultiPartParser, JSONParser, FormParser
 from datetime import timedelta
+from django.utils import timezone # Thêm dòng này
+from managements.models import Role # Thêm dòng này
 
 
-class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
+class UserViewSet(viewsets.ModelViewSet, generics.CreateAPIView):
     queryset = User.objects.filter(is_active=True)
     serializer_class = UserSerializer
     pagination_class = Pagination
-    parser_classes = [JSONParser, MultiPartParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_permissions(self):
         if self.action in ["change_password", "update_info", "get_current_user"]:
@@ -22,13 +25,18 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
         elif self.action == "create":
             return [AllowAny()]
         elif self.action == "get_all_users":
-            return [IsAuthenticated(), AdminOrCoachPermission()]
+            return [IsAuthenticated()]
         return [IsAuthenticated()]
 
     @action(methods=['get'], url_path='all-users', detail=False)
     def get_all_users(self, request):
         self.check_permissions(request)
+        role = request.query_params.get('role')  # lấy role từ query param
         queryset = User.objects.filter(is_active=True)
+
+        if role is not None:
+            queryset = queryset.filter(role=role)
+
         pagination_class = paginators.Pagination()
         paginated_queryset = pagination_class.paginate_queryset(queryset, request, view=self)
         serializer = UserSerializer(paginated_queryset, many=True)
@@ -58,12 +66,10 @@ class UserViewSet(viewsets.ViewSet, generics.CreateAPIView):
     @action(methods=['patch'], url_path='update-info', detail=False)
     def update_info(self, request):
         user = request.user
-        data = request.data.copy()
-        serializer = UserSerializer(user, data=data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 
 class ActivityViewSet(viewsets.ModelViewSet):
@@ -98,20 +104,27 @@ class ActivityViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-class WeeklyStatisticsAPIView(generics.ListAPIView):
-    serializer_class = ActivityStatisticsSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        today = timezone.localdate()
-        start_week = today - timedelta(days=today.weekday())  # thứ 2
-        end_week = start_week + timedelta(days=6)  # CN
-        return Activity.objects.filter(user=user, date__range=[start_week, end_week]).order_by('date')
+# class WeeklyStatisticsAPIView(generics.ListAPIView):
+#     serializer_class = ActivityStatisticsSerializer
+#     # Đổi thành permissions.IsAuthenticated
+#     permission_classes = [IsAuthenticated]
+#
+#     def get_queryset(self):
+#         user = self.request.user
+#         today = timezone.localdate()
+#         start_week = today - timedelta(days=today.weekday())  # thứ 2
+#         end_week = start_week + timedelta(days=6)  # CN
+#         # 'Activity' không có trường 'user'
+#         # Giả sử bạn muốn lọc theo hoạt động của người dùng
+#         # Cần xem lại mô hình dữ liệu để sửa
+#         return Activity.objects.filter(date__range=[start_week, end_week]).order_by('date')
 
 class WorkoutPlanViewSet(viewsets.ModelViewSet):
     queryset = WorkoutPlan.objects.filter(active=True)
     serializer_class = WorkoutPlanSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
     def get_permissions(self):
         if self.action in ["create_plan", "user_plans", "weekly_summary"]:
@@ -142,6 +155,7 @@ class WorkoutPlanViewSet(viewsets.ModelViewSet):
         end_of_week = start_of_week + timedelta(days=6)
 
         weekly_plans = WorkoutPlan.objects.filter(user=user, date__range=(start_of_week, end_of_week))
+        # Logic tính total_time có thể gây lỗi nếu 'reps' hoặc 'sets' không phải số
         total_time = sum(
             [plan.sets * plan.reps * plan.activities.count() for plan in weekly_plans if plan.sets and plan.reps])
 
@@ -186,13 +200,15 @@ class MealPlanViewSet(viewsets.ModelViewSet):
         serializer = MealPlanSerializer(plans, many=True, context={'request': request})
         return Response(serializer.data)
 
-class HealthRecordViewSet(viewsets.ModelViewSet, generics.RetrieveAPIView):
+class HealthRecordViewSet(viewsets.ModelViewSet):
     serializer_class = HealthRecordSerializer
     permission_classes = [IsAuthenticated]
 
     def get_permissions(self):
         if self.action in ['list', 'retrieve']:
             return [IsAuthenticated()]
+        # Với action khác (create, update...) cũng trả về list
+        return [IsAuthenticated()]
 
     def get_queryset(self):
         if self.request.user.role in [Role.Admin, Role.Coach]:
@@ -205,28 +221,31 @@ class HealthRecordViewSet(viewsets.ModelViewSet, generics.RetrieveAPIView):
 
 
 class HealthDiaryViewSet(viewsets.ModelViewSet):
-    queryset = HealthDiary.objects.all()
     serializer_class = HealthDiarySerializer
     permission_classes = [IsAuthenticated]
 
-    def get_permissions(self):
-        if self.action in ['list', 'retrieve']:
-            return [IsAuthenticated(), AdminOrCoachPermission()]
-        if self.action in ["create", "update", "partial_update", "destroy"]:
-            return [IsAuthenticated(), OwnerPermission()]
-        return [IsAuthenticated()]
-
     def get_queryset(self):
-        if self.request.user.role in [Role.Admin, Role.Coach]:
+        user = self.request.user
+        if user.role in [Role.Admin, Role.Coach]:  # nếu admin hoặc coach xem tất cả
             return HealthDiary.objects.filter(active=True)
-        return HealthDiary.objects.filter(user=self.request.user).order_by('-date')
+        # user bình thường chỉ xem nhật ký của mình
+        return HealthDiary.objects.filter(user=user).order_by('-date')
 
     def perform_create(self, serializer):
+        # luôn gán user hiện tại khi tạo
         serializer.save(user=self.request.user)
 
-    @action(methods=['get'], detail=False)
+    @action(detail=False, methods=['get'])
     def my_diaries(self, request):
         diaries = HealthDiary.objects.filter(user=request.user).order_by('-date')
+
+        # Thêm phân trang
+        page = self.paginate_queryset(diaries)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # Nếu không có phân trang
         serializer = self.get_serializer(diaries, many=True)
         return Response(serializer.data)
 
@@ -244,16 +263,28 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
 
         receiver = User.objects.filter(id=receiver_id).first()
         if not receiver:
-            return Response({"message": "Người nhận không tồn tại."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Người nhận không tồn tại"}, status=status.HTTP_400_BAD_REQUEST)
 
         chat_message = ChatMessage(sender=user, receiver=receiver, message=message)
         chat_message.save()
 
-        return Response({"message": "Tin nhắn đã được gửi."}, status=status.HTTP_201_CREATED)
+        serializer = ChatMessageSerializer(chat_message)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def list(self, request, *args, **kwargs):
+        current_user = request.user
+        queryset = self.get_queryset().filter(
+            Q(sender=current_user) | Q(receiver=current_user)
+        ).order_by('timestamp')
+        serializer = ChatMessageSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+# views.py
 
 class UserGoalViewSet(viewsets.ModelViewSet):
-    queryset = UserGoal.objects.filter(active=True)
+    # Lỗi: UserGoal không có trường 'active'.
+    # Thay thế bằng filter() theo các trường khác, hoặc bỏ filter.
+    queryset = UserGoal.objects.all()  # Sửa lại thành .all()
     serializer_class = UserGoalSerializer
     permission_classes = [IsAuthenticated]
 

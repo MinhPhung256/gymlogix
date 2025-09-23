@@ -1,124 +1,165 @@
-import React, { useState } from 'react';
-import { ScrollView, Dimensions } from 'react-native';
-import { Text, Card } from 'react-native-paper';
-import { BarChart } from 'react-native-chart-kit';
+import React, { useEffect, useState } from "react";
+import { View, StyleSheet, ScrollView, ImageBackground, TouchableOpacity, ActivityIndicator } from "react-native";
+import { Card, Text, ProgressBar } from "react-native-paper";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { authApis, endpoints } from "../../configs/Apis";
+import { useNavigation } from "@react-navigation/native";
 
-const screenWidth = Dimensions.get('window').width;
+const StatisticsBox = () => {
+  const nav = useNavigation();
+  const [loading, setLoading] = useState(true);
+  const [healthRecords, setHealthRecords] = useState([]);
+  const [goal, setGoal] = useState(null);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        const api = authApis(token);
 
+        // Lấy HealthRecord
+        const resHealth = await api.get(endpoints["healthrecord-list"]);
+        const records = Array.isArray(resHealth.data.results) ? resHealth.data.results : resHealth.data;
+        setHealthRecords(records);
 
-const StatisticsScreen = () => {
-  const [stats] = useState([
-    { date: 'T2', calories: 1800, duration: 40 },
-    { date: 'T3', calories: 2100, duration: 60 },
-    { date: 'T4', calories: 1700, duration: 30 },
-    { date: 'T5', calories: 2000, duration: 50 },
-    { date: 'T6', calories: 1950, duration: 45 },
-    { date: 'T7', calories: 2200, duration: 55 },
-    { date: 'CN', calories: 1500, duration: 25 },
-  ]);
+        // Lấy Goal
+        const resGoal = await api.get(endpoints["usergoal-list"]);
+        setGoal(resGoal.data[0] || null);
+      } catch (err) {
+        console.error("Lỗi fetch thống kê:", err.response?.data || err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
-  const labels = stats.map(item => item.date);
-  const calories = stats.map(item => item.calories);
-  const duration = stats.map(item => item.duration);
+  if (loading) {
+    return <ActivityIndicator size="large" color="#000099" style={{ flex: 1, justifyContent: "center", marginTop: 50 }} />;
+  }
+
+  if (!healthRecords.length) {
+    return <Text style={{ textAlign: "center", marginTop: 50 }}>Chưa có dữ liệu sức khỏe!</Text>;
+  }
+
+  // Tính tổng các chỉ số
+  let totalWater = 0,
+      totalSteps = 0,
+      totalBmi = 0,
+      totalCalories = 0,
+      totalDuration = 0;
+
+  healthRecords.forEach((r) => {
+    totalWater += r.water_intake ?? 0;
+    totalSteps += r.steps ?? 0;
+    totalBmi += parseFloat(r.bmi) || 0;
+    totalCalories += r.calories_burned ?? 0;
+    totalDuration += r.duration ?? 0;
+  });
+
+  const avgBmi = (totalBmi / healthRecords.length).toFixed(1);
+
+  const cardData = [
+    { label: "BMI trung bình", value: avgBmi, icon: "monitor-weight", unit: "" },
+    { label: "Tổng bước chân", value: totalSteps, icon: "directions-walk", unit: " bước", progress: goal ? Math.min(totalSteps / (goal.target_steps || 10000), 1) : 0 },
+    { label: "Nước đã uống", value: totalWater, icon: "local-drink", unit: " ml", progress: goal ? Math.min(totalWater / (goal.target_water || 2000), 1) : 0 },
+    { label: "Calo tiêu thụ", value: totalCalories.toFixed(0), icon: "local-fire-department", unit: " cal", progress: goal ? Math.min(totalCalories / (goal.target_calories || 500), 1) : 0 },
+    { label: "Thời gian tập", value: totalDuration, icon: "timer", unit: " phút", progress: goal ? Math.min(totalDuration / (goal.target_duration || 30), 1) : 0 },
+  ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <Text variant="titleLarge" style={styles.title}>
-      Thống kê hàng tuần
-      </Text>
+    <ImageBackground source={require("../../assets/Images/background1.jpg")} style={styles.background}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.box}>
+          {/* Header */}
+          <View style={styles.headerContainer}>
+            <TouchableOpacity onPress={() => nav.goBack()} style={styles.arrowButton}>
+              <MaterialIcons name="arrow-back-ios" size={20} color="#000099" />
+            </TouchableOpacity>
+            <Text style={styles.headerText}>Thống kê sức khỏe</Text>
+          </View>
 
-      <Card style={styles.card}>
-        <Text style={styles.chartTitleCalories}>🔥 Calo tiêu thụ</Text>
-        <BarChart
-          data={{
-            labels,
-            datasets: [{ data: calories }],
-          }}
-          width={screenWidth - 48}
-          height={220}
-          fromZero
-          showValuesOnTopOfBars
-          chartConfig={{
-            backgroundColor: '#fff',
-            backgroundGradientFrom: '#fff',
-            backgroundGradientTo: '#fff',
-            decimalPlaces: 0,
-            color: (opacity = 1) => `rgba(255, 99, 71, ${opacity})`,
-            labelColor: () => '#444',
-            barPercentage: 0.6,
-          }}
-          style={{ borderRadius: 16 }}
-        />
-      </Card>
-
-      <Card style={[styles.card, { marginBottom: 0 }]}>
-        <Text style={styles.chartTitleDuration}>⏱️ Thời gian tập luyện</Text>
-        <BarChart
-          data={{
-            labels,
-            datasets: [{ data: duration }],
-          }}
-          width={screenWidth - 48}
-          height={220}
-          fromZero
-          showValuesOnTopOfBars
-          chartConfig={{
-            backgroundColor: '#fff',
-            backgroundGradientFrom: '#fff',
-            backgroundGradientTo: '#fff',
-            decimalPlaces: 0,
-            color: (opacity = 1) => `rgba(30, 136, 229, ${opacity})`,
-            labelColor: () => '#444',
-            barPercentage: 0.6,
-          }}
-          style={{ borderRadius: 16 }}
-        />
-      </Card>
-    </ScrollView>
+          {/* Cards */}
+          {cardData.map((item, idx) => (
+            <Card key={idx} style={styles.card}>
+              <Card.Content style={styles.cardContent}>
+                <MaterialIcons name={item.icon} size={30} color="#000099" />
+                <View style={{ marginLeft: 12, flex: 1 }}>
+                  <Text style={styles.cardLabel}>{item.label}</Text>
+                  <Text style={styles.cardValue}>{item.value}{item.unit}</Text>
+                  {item.progress !== undefined && <ProgressBar progress={item.progress} color="#000099" style={{ marginTop: 6, height: 8, borderRadius: 5 }} />}
+                </View>
+              </Card.Content>
+            </Card>
+          ))}
+        </View>
+      </ScrollView>
+    </ImageBackground>
   );
 };
 
-export default StatisticsScreen;
-
-
-const styles = {
-  container: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-    paddingHorizontal: 16,
-    paddingTop: 20,
+const styles = StyleSheet.create({
+  background: { 
+    flex: 1, 
+    width: "100%" 
   },
-  contentContainer: {
-    paddingBottom: 40,
+  scrollContainer: { 
+    flexGrow: 1, 
+    padding: 20 
   },
-  title: {
-    marginBottom: 24,
-    fontWeight: '700',
-    color: '#B00000',
-    textAlign: 'center',
-  },
-  card: {
+  box: {
+    width: "98%",
+    alignSelf: "center",
     padding: 20,
-    marginBottom: 24,
-    borderRadius: 16,
-    backgroundColor: '#fff',
-    shadowColor: '#000',
+    borderRadius: 25,
+    backgroundColor: "rgba(255,255,255,0.7)",
+    borderWidth: 1,
+    borderColor: "#000099",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3, 
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
+    marginTop: 50,
+    marginBottom: 50,
   },
-  chartTitleCalories: {
-    marginBottom: 12,
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#ff6347', 
+  headerContainer: {
+     flexDirection: "row", 
+     alignItems: "center", 
+     marginBottom: 20 
+    },
+  arrowButton: { 
+    marginRight: 20 
   },
-  chartTitleDuration: {
-    marginBottom: 12,
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1e88e5', 
+  headerText: { 
+    fontSize: 20, 
+    fontWeight: "bold", 
+    color: "#000099", 
+    marginTop: 10, 
+    marginBottom:10, 
+    marginLeft:10 
   },
-};
+  card: { 
+    marginBottom: 16, 
+    borderRadius: 12, 
+    backgroundColor: "rgba(255,255,255,0.7)" 
+  },
+  cardContent: { 
+    flexDirection: "row", 
+    alignItems: "center" 
+  },
+  cardLabel: { 
+    fontSize: 16, 
+    fontWeight: "600", 
+    color: "#333" 
+  },
+  cardValue: { 
+    fontSize: 18, 
+    fontWeight: "bold", 
+    color: "#000099", 
+    marginTop: 4 
+  },
+});
+
+export default StatisticsBox;

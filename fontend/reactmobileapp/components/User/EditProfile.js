@@ -15,11 +15,12 @@ const EditProfile = () => {
     last_name: "",
     username: "",
     email: "",
-    avatar: null,
+    avatar: null, // { uri, type, name } hoặc URL
   });
 
   const [loading, setLoading] = useState(false);
 
+  // Load thông tin user hiện tại
   const loadUser = async () => {
     try {
       setLoading(true);
@@ -47,24 +48,49 @@ const EditProfile = () => {
     loadUser();
   }, []);
 
+  // Chọn ảnh từ thư viện
   const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert("Cấp quyền", "Cần quyền truy cập thư viện ảnh để chọn ảnh đại diện");
-      return;
-    }
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Cấp quyền",
+          "Cần quyền truy cập thư viện ảnh để chọn ảnh đại diện"
+        );
+        return;
+      }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      quality: 0.7,
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    });
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        quality: 0.7,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      });
 
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      setFormData({ ...formData, avatar: result.assets[0] });
+      if (result.canceled) return; // user hủy chọn
+
+      const asset = result.assets?.[0];
+      if (!asset || !asset.uri) return; // kiểm tra tồn tại
+
+      const uri = Platform.OS === "android" 
+        ? asset.uri 
+        : asset.uri.startsWith("file://") 
+          ? asset.uri.replace("file://", "") 
+          : asset.uri;
+
+      const ext = uri.split(".").pop()?.toLowerCase() || "jpg";
+      const type = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : `image/${ext}`;
+
+      setFormData({
+        ...formData,
+        avatar: { uri, type, name: `avatar.${ext}` }
+      });
+    } catch (err) {
+      console.error("Pick image error:", err);
+      Alert.alert("Lỗi", "Không thể chọn ảnh.");
     }
   };
 
+  // Lưu thông tin
   const handleSave = async () => {
     try {
       setLoading(true);
@@ -72,31 +98,40 @@ const EditProfile = () => {
       if (!token) return;
 
       const data = new FormData();
+
       Object.entries(formData).forEach(([key, value]) => {
-        if (value) {
-          if (key === "avatar" && value.uri) {
-            const ext = value.uri.split(".").pop().toLowerCase();
-            const mimeType = ext === "jpg" || ext === "jpeg" ? "image/jpeg" : `image/${ext}`;
-            data.append("avatar", {
-              uri: Platform.OS === "android" ? value.uri : value.uri.replace("file://", ""),
-              type: mimeType,
-              name: `avatar.${ext}`,
-            });
-          } else {
-            data.append(key, value);
-          }
+        if (!value) return;
+
+        // Chỉ gửi file avatar khi có uri (file mới từ picker)
+        if (key === "avatar" && value?.uri) {
+          data.append("avatar", value); // value = { uri, type, name }
+        } else if (key !== "avatar") {
+          data.append(key, value); // các field khác
         }
       });
 
+      // PATCH multipart/form-data
       await authApis(token).patch(endpoints["update-user"], data, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      // Reload user info để cập nhật avatar mới
+      const res = await authApis(token).get(endpoints["current-user"]);
+      setFormData(prev => ({
+        ...prev,
+        avatar: res.data.avatar_url || prev.avatar,
+      }));
+
       Alert.alert("Thành công", "Thông tin đã được cập nhật");
       nav.goBack();
     } catch (err) {
-      console.error(err);
-      Alert.alert("Lỗi", "Không thể cập nhật thông tin.");
+      console.error("Update error:", err.response?.data || err.message);
+      Alert.alert(
+        "Lỗi",
+        err.response?.data
+          ? JSON.stringify(err.response.data)
+          : "Không thể cập nhật thông tin."
+      );
     } finally {
       setLoading(false);
     }
@@ -118,9 +153,7 @@ const EditProfile = () => {
     >
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-          {/* Box trắng */}
           <View style={styles.box}>
-            {/* Tiêu đề với mũi tên */}
             <View style={styles.headerContainer}>
               <TouchableOpacity onPress={() => nav.goBack()} style={styles.arrowButton}>
                 <MaterialIcons name="arrow-back-ios" size={20} color="#000099" />
@@ -128,7 +161,6 @@ const EditProfile = () => {
               <RNText style={styles.headerText}>Chỉnh sửa hồ sơ</RNText>
             </View>
 
-            {/* Avatar */}
             <View style={styles.avatarContainer}>
               <Avatar.Image
                 size={100}
@@ -145,7 +177,6 @@ const EditProfile = () => {
               </Button>
             </View>
 
-            {/* Inputs */}
             <TextInput
               label="Tên"
               value={formData.first_name}
@@ -192,7 +223,6 @@ const EditProfile = () => {
               dense
             />
 
-            {/* Button Lưu */}
             <Button
               mode="contained"
               onPress={handleSave}
@@ -209,6 +239,7 @@ const EditProfile = () => {
     </ImageBackground>
   );
 };
+
 
 const styles = StyleSheet.create({
   background: {

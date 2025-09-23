@@ -1,36 +1,117 @@
-// sampleMealPlans.js
-export const sampleMealPlans = [
+// configs/sampleMealPlans.js
+
+export const sampleMealPlans = {
+  maintain: [
     {
       id: 1,
-      name: "Trứng ốp la & Bánh mì nguyên cám",
-      description: "Trứng ốp la kèm bánh mì nguyên cám, trái cây tươi.",
-      calories_intake: 350,
-      date: "2025-09-10",
-      image: "https://images.unsplash.com/photo-1600891964599-f61ba0e24092?auto=format&fit=crop&w=400&q=80"
+      name: "Salad trộn rau củ",
+      description: "Rau xà lách, cà chua, dưa leo, sốt dầu giấm",
+      calories_intake: 250,
+      image: require('../assets/ImgPlan/salad.jpg')
     },
     {
       id: 2,
-      name: "Salad gà nướng",
-      description: "Salad trộn rau xanh, cà chua, dưa leo và ức gà nướng.",
-      calories_intake: 420,
-      date: "2025-09-10",
-      image: "https://images.unsplash.com/photo-1589307001259-1e2b3d71f4bb?auto=format&fit=crop&w=400&q=80"
+      name: "Cá hồi áp chảo",
+      description: "Cá hồi, khoai lang nướng, bông cải xanh",
+      calories_intake: 400,
+      image: require('../assets/ImgPlan/cahoi.jpg')
     },
     {
       id: 3,
-      name: "Sữa chua & Ngũ cốc",
-      description: "Sữa chua không đường kèm ngũ cốc và hạt hạnh nhân.",
-      calories_intake: 250,
-      date: "2025-09-10",
-      image: "https://images.unsplash.com/photo-1598514983711-907bf9f4fa26?auto=format&fit=crop&w=400&q=80"
+      name: "Sandwich gà",
+      description: "Bánh mì nguyên cám, thịt gà, rau, phô mai",
+      calories_intake: 350,
+      image: require('../assets/ImgPlan/sanwichga.jpg')
     },
     {
       id: 4,
-      name: "Cá hồi áp chảo & Rau củ",
-      description: "Cá hồi áp chảo, kèm súp lơ và cà rốt luộc.",
+      name: "Súp lơ xào tôm",
+      description: "Súp lơ, tôm, tỏi, dầu ô liu",
+      calories_intake: 300,
+      image: require('../assets/ImgPlan/suolo.jpg')
+    },
+    {
+      id: 5,
+      name: "Yến mạch buổi sáng",
+      description: "Yến mạch, sữa hạnh nhân, trái cây tươi",
+      calories_intake: 280,
+      image: require('../assets/ImgPlan/yenmach.jpg')
+    },
+  ],
+
+  lose: [
+    {
+      id: 1,
+      name: "Salad gà nướng",
+      description: "Gà nướng, rau trộn, sốt chanh",
+      calories_intake: 220,
+      image: require('../assets/ImgPlan/saladga.jpg')
+    },
+    {
+      id: 2,
+      name: "Trứng luộc & bơ",
+      description: "2 quả trứng, 1/2 quả bơ",
+      calories_intake: 180,
+      image: require('../assets/ImgPlan/trungbo.jpg')
+    },
+    {
+      id: 3,
+      name: "Cá hấp gừng",
+      description: "Cá, gừng, hành lá, sốt nhẹ",
+      calories_intake: 200,
+      image: require('../assets/ImgPlan/cahap.jpg')
+    },
+    {
+      id: 4,
+      name: "Rau xào nấm",
+      description: "Rau xanh, nấm, tỏi, dầu ô liu",
+      calories_intake: 150,
+      image: require('../assets/ImgPlan/raunam.jpg')
+    },
+    {
+      id: 5,
+      name: "Sinh tố trái cây",
+      description: "Chuối, dâu, sữa hạnh nhân, hạt chia",
+      calories_intake: 180,
+      image: require('../assets/ImgPlan/sinhto.jpg')
+    },
+  ],
+
+  gain: [
+    {
+      id: 1,
+      name: "Cơm gà nướng",
+      description: "Gà nướng, cơm trắng, bông cải xanh",
       calories_intake: 500,
-      date: "2025-09-10",
-      image: "https://images.unsplash.com/photo-1601050699246-b0b486203872?auto=format&fit=crop&w=400&q=80"
-    }
-  ];
-  
+      image: require('../assets/ImgPlan/comga.jpg')
+    },
+    {
+      id: 2,
+      name: "Bò xào rau củ",
+      description: "Thịt bò, ớt chuông, cà rốt, hành tây",
+      calories_intake: 450,
+      image: require('../assets/ImgPlan/boxao.jpg')
+    },
+    {
+      id: 3,
+      name: "Mì Ý sốt thịt",
+      description: "Mì, sốt cà chua, thịt bằm, phô mai",
+      calories_intake: 550,
+      image: require('../assets/ImgPlan/miy.jpg')
+    },
+    {
+      id: 4,
+      name: "Trứng ốp la & bơ",
+      description: "2 quả trứng, bơ, bánh mì nguyên cám",
+      calories_intake: 400,
+      image: require('../assets/ImgPlan/opla.jpg')
+    },
+    {
+      id: 5,
+      name: "Sinh tố protein",
+      description: "Sữa, bột protein, chuối, bơ đậu phộng",
+      calories_intake: 450,
+      image: require('../assets/ImgPlan/protein.jpg')
+    },
+  ]
+};
