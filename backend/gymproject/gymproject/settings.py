@@ -24,7 +24,6 @@ SECRET_KEY = 'django-insecure-gp4-7mbdqj3+ceq0vazb@us59uypv1z9u@7i4w(y27a4=hwyaj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -84,6 +83,10 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'gymproject.urls'
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+import os
+ALLOWED_HOSTS = ['*']
+
 
 TEMPLATES = [
     {
@@ -183,19 +186,19 @@ OAUTH2_PROVIDER = {
 
 LOGIN_URL = 'login'
 LOGOUT_URL = 'logout'
-LOGIN_REDIRECT_URL = '/'  # hoặc '/home', '/dashboard' tuỳ ý
+LOGIN_REDIRECT_URL = '/'
 
 
-# OAuth2 Google
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = ''
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = ''
-
-# OAuth2 Facebook
-SOCIAL_AUTH_FACEBOOK_KEY = ''
-SOCIAL_AUTH_FACEBOOK_SECRET = ''
-
-# reCAPTCHA (nếu có)
-RECAPTCHA_SECRET_KEY = ''
+# # OAuth2 Google
+# SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = ''
+# SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = ''
+#
+# # OAuth2 Facebook
+# SOCIAL_AUTH_FACEBOOK_KEY = ''
+# SOCIAL_AUTH_FACEBOOK_SECRET = ''
+#
+# # reCAPTCHA (nếu có)
+# RECAPTCHA_SECRET_KEY = ''
 
 CLIENT_ID = 'Xq5rTfy5f92tDlR3XRquM6Dl1Zcyxz7Ob1u4nJ3b'
 CLIENT_SECRET = 'Iv7FCsUHiiOY8kDwieIbKZXEhff2Z1okuYU0pH3v5aeRyS9AoaFeJJIChakBR87yiGpnyeNoH7iLplVy7YmzWiwKsTjaLnK1THmb3gqxVNs19jcbG6lZ3wC70JxSEK0x'
