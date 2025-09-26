@@ -1,7 +1,7 @@
 Đây là ứng dụng quản lý sức khỏe cá nhân gồm backend Django và frontend React Native (Expo)
 Cho phép người dùng theo dõi chỉ số sức khỏe, lịch sử khám bệnh, và cập nhật thông tin cá nhân
 
-# HealthManage (Backend) bằng Django
+# Gymlogix (Backend) bằng Django
 ```bash
 # Tạo môi trường ảo
 python -m venv venv
@@ -35,7 +35,7 @@ python manage.py runserver
 pip freeze > requirements.txt
 ```
 
-# HealthManage (Fontend) bằng React Native
+# Gylogix (Fontend) bằng React Native
 ```bash
 # Cài Expo CLI (nếu chưa có)
 npm install -g expo-cli
